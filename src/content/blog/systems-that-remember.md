@@ -10,7 +10,7 @@ readingMinutes: 18
 
 ## The Archive Problem
 
-Most publishing systems treat references as exits. A link asks the reader to leave, inspect, return, and rebuild attention. That pattern is tolerable for short posts, but it becomes expensive in long essays where every claim may depend on a definition, a source, or a prior argument.
+Most publishing systems treat references as exits. A link asks the reader to leave, review, return, and rebuild attention. That pattern is tolerable for short posts, but it becomes expensive in long essays where every claim may depend on a definition, a source, or a prior argument.
 
 Thinker Scripts treats the link as a pane, not a door. The article stays fixed while footnotes, citations, and internal anchors open in a contextual side panel. The goal is not novelty. The goal is fewer broken thoughts.
 
@@ -21,7 +21,7 @@ This matters because serious reading is cumulative. A reader builds a stack of t
 The contextual panel works best for three kinds of references:
 
 - Footnotes that clarify a term without changing the argument.
-- Internal section links like [The Interface Contract](#the-interface-contract), where the reader wants to inspect a previous claim.
+- Internal section links like [The Interface Contract](#the-interface-contract), where the reader wants to revisit a previous claim.
 - Citations or quoted fragments that should be available without forcing tab management.
 
 The interaction is deliberately small. It uses static Markdown output, then progressively enhances internal links. If JavaScript is unavailable, every link still resolves to a normal anchor. That keeps the system honest and keeps the article accessible.
@@ -54,4 +54,4 @@ Zen Mode removes chrome when the reader needs continuity. The content index adds
 
 Those modes are not separate products. They are different postures around the same text.
 
-[^1]: In this prototype, footnotes are rendered through Astro's Markdown pipeline and intercepted by a tiny client script. The fallback remains a standard footnote jump.
+[^1]: Footnotes open in a focused reference panel while preserving the standard jump behavior as a fallback.

@@ -13,7 +13,9 @@ function setZen(active) {
 	root.classList.toggle('zen-active', active);
 	document.body.classList.toggle('zen-active', active);
 	localStorage.setItem('ts-zen', String(active));
-	document.querySelector('[data-zen-toggle]')?.setAttribute('aria-pressed', String(active));
+	document.querySelectorAll('[data-zen-toggle]').forEach((toggle) => {
+		toggle.setAttribute('aria-pressed', String(active));
+	});
 }
 
 function initTheme(signal) {
@@ -29,6 +31,7 @@ function initTheme(signal) {
 
 function initZen(signal) {
 	const toggle = document.querySelector('[data-zen-toggle]');
+	const exit = document.querySelector('[data-zen-exit]');
 	if (!toggle) {
 		root.classList.remove('zen-active');
 		document.body.classList.remove('zen-active');
@@ -38,21 +41,29 @@ function initZen(signal) {
 	const active = localStorage.getItem('ts-zen') === 'true';
 	setZen(active);
 	toggle.addEventListener('click', () => setZen(!root.classList.contains('zen-active')), { signal });
+	exit?.addEventListener('click', () => setZen(false), { signal });
+	document.addEventListener(
+		'keydown',
+		(event) => {
+			if (event.key === 'Escape' && root.classList.contains('zen-active')) {
+				setZen(false);
+			}
+		},
+		{ signal },
+	);
 }
 
 function initReadingProgress(signal) {
 	const widget = document.querySelector('[data-reading-widget]');
-	const ring = document.querySelector('[data-progress-ring]');
+	const meter = document.querySelector('[data-progress-meter]');
+	const bar = document.querySelector('[data-progress-bar]');
+	const percent = document.querySelector('[data-progress-percent]');
+	const zenRing = document.querySelector('[data-zen-progress-ring]');
 	const label = document.querySelector('[data-time-remaining]');
 	const speedPreset = document.querySelector('[data-speed-preset]');
 	const readerContent = document.querySelector('[data-reader-content]');
 
-	if (!widget || !ring || !label || !readerContent) return;
-
-	const radius = Number(ring.getAttribute('r'));
-	const circumference = 2 * Math.PI * radius;
-	ring.style.strokeDasharray = `${circumference}`;
-	ring.style.strokeDashoffset = `${circumference}`;
+	if (!widget || !meter || !bar || !label || !readerContent) return;
 
 	function update() {
 		const words = Number(label.dataset.wordCount || 0);
@@ -65,13 +76,16 @@ function initReadingProgress(signal) {
 		const progress = Math.min(1, Math.max(0, rawProgress));
 		const remainingWords = Math.max(0, Math.round(words * (1 - progress)));
 		const minutesLeft = Math.max(1, Math.ceil(remainingWords / speed));
+		const progressPercent = Math.round(progress * 100);
 
-		ring.style.strokeDashoffset = `${circumference * (1 - progress)}`;
-		widget.setAttribute('aria-valuenow', String(Math.round(progress * 100)));
-		widget.setAttribute('aria-valuemin', '0');
-		widget.setAttribute('aria-valuemax', '100');
-		widget.setAttribute('role', 'progressbar');
+		bar.style.transform = `scaleX(${progress})`;
+		if (zenRing) zenRing.style.strokeDashoffset = String(100 - progressPercent);
+		meter.setAttribute('aria-valuenow', String(progressPercent));
+		meter.setAttribute('aria-valuemin', '0');
+		meter.setAttribute('aria-valuemax', '100');
+		meter.setAttribute('role', 'progressbar');
 		label.textContent = progress >= 0.995 ? 'Done' : `${minutesLeft} min left`;
+		if (percent) percent.textContent = `${progressPercent}%`;
 	}
 
 	speedPreset?.addEventListener('change', update, { signal });
@@ -154,8 +168,7 @@ function initLibrary(signal) {
 }
 
 function initReaderControls(signal) {
-	const readerContent = document.querySelector('[data-reader-content]');
-	const label = document.querySelector('[data-time-remaining]');
+	const readerArticle = document.querySelector('[data-reading-article]');
 	const updateReadingProgress = () => window.dispatchEvent(new Event('resize'));
 
 	document.querySelector('[data-font-scale]')?.addEventListener(
@@ -176,12 +189,25 @@ function initReaderControls(signal) {
 		{ signal },
 	);
 
+	document.querySelector('[data-letter-spacing]')?.addEventListener(
+		'input',
+		(event) => {
+			root.style.setProperty('--reader-tracking', `${event.target.value}em`);
+			updateReadingProgress();
+		},
+		{ signal },
+	);
+
 	document.querySelectorAll('[data-font-choice]').forEach((button) => {
 		button.addEventListener(
 			'click',
 			() => {
-				const serif = button.dataset.fontChoice === 'serif';
-				root.style.setProperty('--reader-font', serif ? 'var(--font-serif)' : 'var(--font-sans)');
+				const fonts = {
+					inter: 'var(--font-sans)',
+					charter: 'var(--font-serif)',
+					mono: 'var(--font-mono)',
+				};
+				root.style.setProperty('--reader-font', fonts[button.dataset.fontChoice] || fonts.inter);
 				document.querySelectorAll('[data-font-choice]').forEach((item) => {
 					item.setAttribute('aria-pressed', String(item === button));
 				});
@@ -191,46 +217,230 @@ function initReaderControls(signal) {
 		);
 	});
 
-	if (!label || !readerContent) return;
-}
-
-function initContextPanel(signal) {
-	const readerContent = document.querySelector('[data-reader-content]');
-	const panel = document.querySelector('[data-context-panel]');
-	const panelContent = document.querySelector('[data-context-content]');
-
-	function openContext(html, label) {
-		if (!panel || !panelContent) return;
-		panelContent.innerHTML = `<h2 class="text-lg font-medium text-neutral-950 dark:text-white">${label}</h2><div class="mt-4">${html}</div>`;
-		panel.dataset.open = 'true';
-	}
-
-	document.querySelector('[data-context-close]')?.addEventListener(
-		'click',
-		() => {
-			if (panel) panel.dataset.open = 'false';
-		},
-		{ signal },
-	);
-
-	if (!readerContent) return;
-
-	readerContent.querySelectorAll('a[href^="#"]').forEach((link) => {
-		link.addEventListener(
+	document.querySelectorAll('[data-reader-width]').forEach((button) => {
+		button.addEventListener(
 			'click',
-			(event) => {
-				const target = document.querySelector(link.getAttribute('href'));
-				if (!target) return;
-				event.preventDefault();
-				const label =
-					link.closest('[id^="fnref"]') || link.getAttribute('href').startsWith('#fn')
-						? 'Footnote'
-						: 'Internal Reference';
-				openContext(target.outerHTML, label);
+			() => {
+				const wide = button.dataset.readerWidth === '4xl';
+				readerArticle?.classList.toggle('max-w-2xl', !wide);
+				readerArticle?.classList.toggle('max-w-4xl', wide);
+				document.querySelectorAll('[data-reader-width]').forEach((item) => {
+					item.setAttribute('aria-pressed', String(item === button));
+				});
+				updateReadingProgress();
 			},
 			{ signal },
 		);
 	});
+
+	document.querySelector('[data-progress-toggle]')?.addEventListener(
+		'change',
+		(event) => {
+			document.querySelector('[data-reading-widget]')?.classList.toggle('hidden', !event.target.checked);
+		},
+		{ signal },
+	);
+}
+
+function initReaderDock(signal) {
+	const readerContent = document.querySelector('[data-reader-content]');
+	const dock = document.querySelector('[data-reader-dock]');
+	const trigger = document.querySelector('[data-reader-dock-trigger]');
+	const tabs = [...document.querySelectorAll('[data-reader-tab]')];
+	const panes = [...document.querySelectorAll('[data-reader-pane]')];
+	const toc = document.querySelector('[data-reader-toc]');
+	const searchInput = document.querySelector('[data-reader-search]');
+	const searchCount = document.querySelector('[data-search-count]');
+	const searchNext = document.querySelector('[data-search-next]');
+	const searchPrev = document.querySelector('[data-search-prev]');
+	let matches = [];
+	let activeMatch = -1;
+
+	function escapeHtml(value) {
+		return value.replace(/[&<>"']/g, (character) => {
+			const entities = {
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#39;',
+			};
+			return entities[character];
+		});
+	}
+
+	function setMode(mode) {
+		tabs.forEach((button) => {
+			button.setAttribute('aria-pressed', String(button.dataset.readerTab === mode));
+		});
+		panes.forEach((pane) => {
+			pane.hidden = pane.dataset.readerPane !== mode;
+		});
+	}
+
+	function openDock() {
+		if (!dock || !trigger) return;
+		dock.dataset.open = 'true';
+		trigger.setAttribute('aria-expanded', 'true');
+	}
+
+	function closeDock() {
+		if (!dock || !trigger) return;
+		dock.dataset.open = 'false';
+		trigger.setAttribute('aria-expanded', 'false');
+	}
+
+	function renderToc() {
+		if (!readerContent || !toc) return [];
+		const headings = [...readerContent.querySelectorAll('h2, h3')];
+		if (!headings.length) {
+			toc.innerHTML = '<p>No structural headings found.</p>';
+			return [];
+		}
+		toc.innerHTML = headings
+			.map((heading, index) => {
+				if (!heading.id) heading.id = `section-${index + 1}`;
+				const depth = heading.tagName === 'H3' ? 'h3' : 'h2';
+				return `<a class="reader-toc-link" data-heading-index="${index}" data-depth="${depth}" href="#${escapeHtml(heading.id)}"><span>${depth.toUpperCase()}</span><strong>${escapeHtml(heading.textContent?.trim() || heading.id)}</strong></a>`;
+			})
+			.join('');
+		return headings;
+	}
+
+	function updateActiveHeading(headings) {
+		const links = [...document.querySelectorAll('[data-heading-index]')];
+		if (!headings.length || !links.length) return;
+		let activeIndex = 0;
+		let activeDistance = Infinity;
+		const anchor = window.innerHeight * 0.28;
+		headings.forEach((heading, index) => {
+			const distance = Math.abs(heading.getBoundingClientRect().top - anchor);
+			if (distance < activeDistance) {
+				activeDistance = distance;
+				activeIndex = index;
+			}
+		});
+		links.forEach((link) => link.setAttribute('aria-current', String(Number(link.dataset.headingIndex) === activeIndex)));
+	}
+
+	function buildMatches(query) {
+		matches = [];
+		activeMatch = -1;
+		if (!readerContent || !query) return;
+		const walker = document.createTreeWalker(readerContent, NodeFilter.SHOW_TEXT, {
+			acceptNode(node) {
+				if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+				const parent = node.parentElement;
+				if (!parent || parent.closest('script, style, code, pre')) return NodeFilter.FILTER_REJECT;
+				return NodeFilter.FILTER_ACCEPT;
+			},
+		});
+		const needle = query.toLowerCase();
+		while (walker.nextNode()) {
+			const node = walker.currentNode;
+			const haystack = node.nodeValue.toLowerCase();
+			let offset = haystack.indexOf(needle);
+			while (offset !== -1) {
+				const range = document.createRange();
+				range.setStart(node, offset);
+				range.setEnd(node, offset + query.length);
+				matches.push(range);
+				offset = haystack.indexOf(needle, offset + query.length);
+			}
+		}
+	}
+
+	function paintMatches() {
+		if (!CSS.highlights) return;
+		CSS.highlights.delete('reader-search');
+		CSS.highlights.delete('reader-search-active');
+		if (matches.length) CSS.highlights.set('reader-search', new Highlight(...matches));
+		if (activeMatch >= 0) CSS.highlights.set('reader-search-active', new Highlight(matches[activeMatch]));
+	}
+
+	function jumpToMatch(direction) {
+		if (!matches.length) return;
+		activeMatch = (activeMatch + direction + matches.length) % matches.length;
+		const rect = matches[activeMatch].getBoundingClientRect();
+		const top = window.scrollY + rect.top - window.innerHeight * 0.32;
+		window.scrollTo({ top, behavior: 'smooth' });
+		if (searchCount) searchCount.textContent = `${activeMatch + 1} / ${matches.length}`;
+		paintMatches();
+	}
+
+	function updateSearch() {
+		const query = searchInput?.value.trim() || '';
+		buildMatches(query);
+		if (searchCount) searchCount.textContent = matches.length === 1 ? '1 match' : `${matches.length} matches`;
+		if (matches.length) jumpToMatch(1);
+		else paintMatches();
+	}
+
+	if (!dock || !trigger || !readerContent) return;
+	const headings = renderToc();
+	updateActiveHeading(headings);
+
+	trigger.addEventListener('click', () => (dock.dataset.open === 'true' ? closeDock() : openDock()), { signal });
+	tabs.forEach((button) => {
+		button.addEventListener('click', () => {
+			setMode(button.dataset.readerTab);
+			openDock();
+			if (button.dataset.readerTab === 'search') searchInput?.focus();
+		}, { signal });
+	});
+	toc?.addEventListener('click', (event) => {
+		const link = event.target.closest('a[href^="#"]');
+		if (!link) return;
+		closeDock();
+	}, { signal });
+	searchInput?.addEventListener('input', updateSearch, { signal });
+	searchNext?.addEventListener('click', () => jumpToMatch(1), { signal });
+	searchPrev?.addEventListener('click', () => jumpToMatch(-1), { signal });
+	window.addEventListener('scroll', () => updateActiveHeading(headings), { passive: true, signal });
+	window.addEventListener('resize', () => updateActiveHeading(headings), { signal });
+	document.addEventListener(
+		'pointerdown',
+		(event) => {
+			if (dock.dataset.open !== 'true' || dock.contains(event.target)) return;
+			closeDock();
+		},
+		{ signal },
+	);
+	document.addEventListener('keydown', (event) => {
+		if (event.key === 'Escape') closeDock();
+	}, { signal });
+}
+
+function initBackToTop(signal) {
+	const button = document.querySelector('[data-back-to-top]');
+	const progressRing = document.querySelector('[data-back-to-top-progress]');
+	if (!button || !progressRing) return;
+
+	function update() {
+		const scrollable = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+		const longPage = scrollable > 700;
+		const progress = scrollable ? Math.min(100, Math.max(0, (window.scrollY / scrollable) * 100)) : 0;
+		const visible = longPage && window.scrollY > 200;
+
+		progressRing.style.strokeDashoffset = String(100 - progress);
+		button.classList.toggle('opacity-0', !visible);
+		button.classList.toggle('pointer-events-none', !visible);
+		button.classList.toggle('scale-95', !visible);
+		button.classList.toggle('opacity-100', visible);
+		button.classList.toggle('pointer-events-auto', visible);
+		button.classList.toggle('scale-100', visible);
+	}
+
+	button.addEventListener(
+		'click',
+		() => {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		},
+		{ signal },
+	);
+	window.addEventListener('scroll', update, { passive: true, signal });
+	window.addEventListener('resize', update, { signal });
+	update();
 }
 
 function initPage() {
@@ -243,7 +453,8 @@ function initPage() {
 	initReadingProgress(signal);
 	initLibrary(signal);
 	initReaderControls(signal);
-	initContextPanel(signal);
+	initReaderDock(signal);
+	initBackToTop(signal);
 }
 
 document.addEventListener('astro:page-load', initPage);
