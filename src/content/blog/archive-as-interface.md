@@ -1,10 +1,10 @@
 ---
 title: "Archive as Interface"
-description: "A review of dense archives as navigable systems, with attention to taxonomy, adjacency, and reader memory."
+description: "A review of dense archives as navigable systems, with taxonomy, mental models for technical architects, and mechanistic problem solving."
 publishedAt: 2026-03-03
 type: "Review"
 categories: ["History", "Systems", "Personal"]
-tags: ["archives", "taxonomy", "review"]
+tags: ["archives", "taxonomy", "review", "mental models for technical architects", "mechanistic approach to problem solving in tech", "modern web architecture breakdown", "Tailwind v4 optimization strategies"]
 readingMinutes: 12
 ---
 

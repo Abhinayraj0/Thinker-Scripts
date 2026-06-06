@@ -17,13 +17,30 @@ const published = new Intl.DateTimeFormat('en', {
 	day: 'numeric',
 	year: 'numeric',
 }).format(post.data.publishedAt);
+const articleKeywords = [
+	...post.data.tags,
+	...post.data.categories,
+	post.data.type,
+	'philosophy of software engineering',
+	'systems thinking software design',
+	'deep reading for developers',
+	'critical thinking in computer science',
+];
 ---
 
-<Layout title={post.data.title} description={post.data.description} zenCapable>
+<Layout
+	title={post.data.title}
+	description={post.data.description}
+	keywords={articleKeywords}
+	type="article"
+	publishedAt={post.data.publishedAt}
+	updatedAt={post.data.updatedAt ?? post.data.publishedAt}
+	zenCapable
+>
 	<section class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950" data-post-hero>
 		<div class="mx-auto max-w-5xl px-5 py-12 sm:px-6 lg:px-8">
 			<div class="max-w-4xl">
-				<a class="text-sm text-neutral-500 hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href="/#library">&lt;- Back to Library</a>
+				<a class="text-sm text-neutral-500 hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href="/library/">&lt;- Back to Library</a>
 				<p class="mt-8 font-mono text-xs text-neutral-500">{post.data.type} / {published} / {post.data.readingMinutes} Min</p>
 				<h1 class="mt-4 max-w-4xl text-4xl font-semibold leading-tight text-pretty text-neutral-950 sm:text-6xl dark:text-white">{post.data.title}</h1>
 				<p class="mt-6 max-w-3xl text-lg leading-8 text-neutral-600 dark:text-neutral-300">{post.data.description}</p>

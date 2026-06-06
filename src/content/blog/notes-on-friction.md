@@ -1,10 +1,10 @@
 ---
 title: "Notes on Friction"
-description: "Brief notes on why some interface friction is useful, and why most publishing friction is accidental."
+description: "Brief notes on interface friction, minimalism in modern web engineering, and distraction-free technical layouts for deep reading."
 publishedAt: 2026-04-11
 type: "Brief Notes"
 categories: ["Thought", "Technology"]
-tags: ["ux", "reading", "design"]
+tags: ["ux", "reading", "design", "how to design distraction-free technical layouts", "minimalism in modern web engineering", "user interface mechanics for technical blogs"]
 readingMinutes: 7
 ---
 

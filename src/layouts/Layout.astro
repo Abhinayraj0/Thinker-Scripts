@@ -4,15 +4,83 @@ import '../styles/global.css';
 interface Props {
 	title?: string;
 	description?: string;
+	keywords?: string[];
+	type?: 'website' | 'article';
+	image?: string;
+	publishedAt?: Date;
+	updatedAt?: Date;
 	zenCapable?: boolean;
 }
 
 const {
 	title = 'Thinker Scripts',
-	description = 'Long-form essays with contextual reading tools for technical minds.',
+	description = 'A tech philosophy blog about the philosophy of software engineering, systems thinking software design, and deep reading for developers.',
+	keywords = [
+		'philosophy of software engineering',
+		'tech philosophy blog',
+		'systems thinking software design',
+		'epistemology in tech',
+		'first principles software development',
+		'deep reading for developers',
+	],
+	type = 'website',
+	image = '/og-default.svg',
+	publishedAt,
+	updatedAt,
 	zenCapable = false,
 } = Astro.props;
 const pageTitle = title === 'Thinker Scripts' ? title : `${title} | Thinker Scripts`;
+const path = Astro.url.pathname;
+const site = Astro.site ?? new URL('https://thinkerscripts.com');
+const canonical = new URL(path, site).toString();
+const imageUrl = new URL(image, site).toString();
+const navItems = [
+	{ href: '/library/', label: 'Library', active: path.startsWith('/library') },
+	{ href: '/topics/', label: 'Topics', active: path.startsWith('/topics') },
+	{ href: '/posts/systems-that-remember/', label: 'Featured', active: path === '/posts/systems-that-remember/' },
+	{ href: '/about/', label: 'About', active: path.startsWith('/about') },
+];
+const siteSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'WebSite',
+	name: 'Thinker Scripts',
+	url: new URL('/', site).toString(),
+	description,
+	inLanguage: 'en',
+	publisher: {
+		'@type': 'Organization',
+		name: 'Thinker Scripts',
+		url: new URL('/', site).toString(),
+	},
+	about: keywords.slice(0, 8),
+};
+const pageSchema = {
+	'@context': 'https://schema.org',
+	'@type': type === 'article' ? 'BlogPosting' : 'WebPage',
+	headline: pageTitle,
+	name: pageTitle,
+	description,
+	url: canonical,
+	image: imageUrl,
+	keywords,
+	inLanguage: 'en',
+	isPartOf: {
+		'@type': 'WebSite',
+		name: 'Thinker Scripts',
+		url: new URL('/', site).toString(),
+	},
+	author: {
+		'@type': 'Organization',
+		name: 'Thinker Scripts',
+	},
+	publisher: {
+		'@type': 'Organization',
+		name: 'Thinker Scripts',
+		url: new URL('/', site).toString(),
+	},
+	...(publishedAt ? { datePublished: publishedAt.toISOString() } : {}),
+	...(updatedAt ? { dateModified: updatedAt.toISOString() } : {}),
+};
 ---
 
 <!doctype html>
@@ -21,10 +89,27 @@ const pageTitle = title === 'Thinker Scripts' ? title : `${title} | Thinker Scri
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="description" content={description} />
+		<meta name="keywords" content={keywords.join(', ')} />
+		<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 		<meta name="theme-color" content="#fafafa" />
-		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site ?? 'https://thinkerscripts.com')} />
+		<link rel="canonical" href={canonical} />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>{pageTitle}</title>
+		<meta property="og:site_name" content="Thinker Scripts" />
+		<meta property="og:type" content={type} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:image" content={imageUrl} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={imageUrl} />
+		{publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
+		{updatedAt && <meta property="article:modified_time" content={updatedAt.toISOString()} />}
+		{type === 'article' && keywords.map((keyword) => <meta property="article:tag" content={keyword} />)}
+		<script type="application/ld+json" set:html={JSON.stringify(siteSchema)} />
+		<script type="application/ld+json" set:html={JSON.stringify(pageSchema)} />
 		<script is:inline>
 			const storedTheme = localStorage.getItem('ts-theme');
 			const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -47,14 +132,16 @@ const pageTitle = title === 'Thinker Scripts' ? title : `${title} | Thinker Scri
 					<span translate="no">Thinker Scripts</span>
 				</a>
 				<div class="hidden items-center gap-1 text-sm text-neutral-600 md:flex dark:text-neutral-300">
-					<a class="nav-link" href="/#library">Library</a>
-					<a class="nav-link" href="/posts/systems-that-remember/">Featured</a>
-					<a class="nav-link" href="/#library?type=Deep-Dive">Deep-Dives</a>
+					{navItems.map((item) => (
+						<a class="nav-link" href={item.href} aria-current={item.active ? 'page' : undefined}>{item.label}</a>
+					))}
 				</div>
 				<div class="flex items-center gap-2">
 					{zenCapable && (
 						<button class="zen-switch" type="button" data-zen-toggle aria-label="Toggle Zen Mode" aria-pressed="false" title="Zen Mode">
 							<span class="zen-switch__track" aria-hidden="true">
+								<span class="zen-switch__label zen-switch__label--off">Off</span>
+								<span class="zen-switch__label zen-switch__label--on">On</span>
 								<span class="zen-switch__thumb">
 									<svg class="zen-switch__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
 										<path d="M4 12h4"></path>
@@ -113,7 +200,8 @@ const pageTitle = title === 'Thinker Scripts' ? title : `${title} | Thinker Scri
 			<div class="mx-auto flex max-w-7xl flex-col gap-4 px-5 text-sm text-neutral-500 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8 dark:text-neutral-400">
 				<p>Copyright 2026 Thinker Scripts. Designed for focused long-form reading.</p>
 				<div class="flex gap-4">
-					<a class="hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href="/#library">Index</a>
+					<a class="hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href="/library/">Index</a>
+					<a class="hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href="/topics/">Topics</a>
 					<a class="hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href="https://thinkerscripts.com">thinkerscripts.com</a>
 				</div>
 			</div>

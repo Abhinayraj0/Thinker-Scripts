@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LibraryListing from '../components/LibraryListing.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog'))
+	.filter((post) => !post.data.draft)
+	.sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+---
+
+<Layout
+	title="Software Engineering Philosophy Library"
+	description="Browse deep reading for developers across software engineering philosophy, mental models for technical architects, modern web architecture, and distraction-free technical layouts."
+	keywords={[
+		'deep reading for developers',
+		'mental models for technical architects',
+		'why software engineers should study philosophy',
+		'building cognitive frameworks for complex systems',
+		'modern web architecture breakdown',
+		'advanced Astro js implementation',
+		'Tailwind v4 optimization strategies',
+		'designing fast context-aware reading interfaces',
+		'how to design distraction-free technical layouts',
+		'minimalism in modern web engineering',
+	]}
+>
+	<section class="mx-auto max-w-7xl px-5 py-14 sm:px-6 lg:px-8">
+		<p class="font-mono text-xs text-neutral-500 dark:text-neutral-400">LIBRARY</p>
+		<h1 class="mt-4 max-w-4xl text-5xl font-semibold leading-none text-pretty text-neutral-950 sm:text-7xl dark:text-white">
+			Software engineering philosophy library.
+		</h1>
+		<p class="mt-6 max-w-3xl text-lg leading-8 text-neutral-600 dark:text-neutral-300">
+			Every published essay is available here with filters for technical philosophy, systems thinking software design, architecture, reading time, and article form.
+		</p>
+	</section>
+
+	<LibraryListing
+		posts={posts}
+		title="Filter by software thinking style."
+		description="Narrow the archive by essay type, discipline, and reading window to find work on first principles software development, interface mechanics, and cognitive frameworks."
+	/>
+</Layout>

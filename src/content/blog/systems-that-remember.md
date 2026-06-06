@@ -1,10 +1,10 @@
 ---
 title: "Systems That Remember"
-description: "A deep-dive on notes, archives, and interfaces that keep context alive without turning reading into navigation labor."
+description: "A deep-dive on cognitive architectures for programming, context-aware reading interfaces, and systems thinking software design."
 publishedAt: 2026-05-22
 type: "Deep-Dive"
 categories: ["Technology", "Systems", "Thought"]
-tags: ["knowledge systems", "interfaces", "memory"]
+tags: ["knowledge systems", "interfaces", "memory", "cognitive architectures for programming", "systems thinking software design", "designing fast context-aware reading interfaces"]
 readingMinutes: 18
 ---
 

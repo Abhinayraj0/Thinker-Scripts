@@ -19,7 +19,7 @@ export default defineConfig({
 		},
 	},
 	vite: {
-		cacheDir: '.vite',
+		cacheDir: process.env.VITE_CACHE_DIR ?? '.vite',
 		plugins: [tailwindcss()],
 	},
 });

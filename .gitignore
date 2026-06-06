@@ -6,6 +6,7 @@ dist/
 .vite/
 .vite-cache/
 .vite-build-cache/
+.vite-build-check/
 
 # dependencies
 node_modules/
