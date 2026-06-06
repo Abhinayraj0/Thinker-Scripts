@@ -1,0 +1,60 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import memoryImage from '../assets/memory-field.svg';
+import archiveImage from '../assets/archive-grid.svg';
+import interfaceImage from '../assets/interface-lines.svg';
+
+interface Props {
+	post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const images = {
+	'systems-that-remember': memoryImage,
+	'notes-on-friction': interfaceImage,
+	'archive-as-interface': archiveImage,
+};
+const date = new Intl.DateTimeFormat('en', {
+	month: 'short',
+	day: 'numeric',
+	year: 'numeric',
+}).format(post.data.publishedAt);
+---
+
+<article
+	class="post-card border border-neutral-200 bg-white p-5 transition-colors duration-150 hover:border-neutral-950 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-white"
+	data-post-card
+	data-type={post.data.type}
+	data-categories={post.data.categories.join('|')}
+	data-reading-minutes={post.data.readingMinutes}
+>
+	<a class="group grid gap-5 md:grid-cols-[1fr_180px]" href={`/posts/${post.id}/`}>
+		<div class="min-w-0">
+			<div class="flex flex-wrap items-center gap-2 font-mono text-xs text-neutral-500 dark:text-neutral-400">
+				<span>{post.data.type}</span>
+				<span aria-hidden="true">/</span>
+				<span>{date}</span>
+				<span aria-hidden="true">/</span>
+				<span>{post.data.readingMinutes} Min</span>
+			</div>
+			<h3 class="mt-3 text-2xl font-semibold leading-tight text-pretty text-neutral-950 group-hover:underline group-hover:underline-offset-4 dark:text-white">
+				{post.data.title}
+			</h3>
+			<p class="mt-3 max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">{post.data.description}</p>
+			<div class="mt-4 flex flex-wrap gap-2">
+				{post.data.categories.map((category) => <span class="border border-neutral-200 px-2 py-1 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">{category}</span>)}
+			</div>
+		</div>
+		<div class="hidden overflow-hidden border border-neutral-200 bg-neutral-50 md:block dark:border-neutral-800 dark:bg-neutral-900">
+			<Image
+				src={images[post.id] ?? memoryImage}
+				alt=""
+				width={360}
+				height={240}
+				loading="lazy"
+				class="h-full min-h-36 w-full object-cover opacity-90 transition-transform duration-150 group-hover:scale-[1.02] motion-reduce:transition-none"
+			/>
+		</div>
+	</a>
+</article>

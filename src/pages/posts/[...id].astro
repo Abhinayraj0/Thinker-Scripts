@@ -1,0 +1,123 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	return posts.map((post) => ({
+		params: { id: post.id },
+		props: { post },
+	}));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const published = new Intl.DateTimeFormat('en', {
+	month: 'long',
+	day: 'numeric',
+	year: 'numeric',
+}).format(post.data.publishedAt);
+---
+
+<Layout title={post.data.title} description={post.data.description} zenCapable>
+	<section class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950" data-post-hero>
+		<div class="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-6 lg:grid-cols-[1fr_280px] lg:px-8">
+			<div>
+				<a class="text-sm text-neutral-500 hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href="/#library">&lt;- Back to Library</a>
+				<p class="mt-8 font-mono text-xs text-neutral-500">{post.data.type} / {published} / {post.data.readingMinutes} Min</p>
+				<h1 class="mt-4 max-w-4xl text-4xl font-semibold leading-tight text-pretty text-neutral-950 sm:text-6xl dark:text-white">{post.data.title}</h1>
+				<p class="mt-6 max-w-3xl text-lg leading-8 text-neutral-600 dark:text-neutral-300">{post.data.description}</p>
+			</div>
+			<aside class="border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-900" data-reader-controls>
+				<p class="font-mono text-xs text-neutral-500">READING CONTROLS</p>
+				<div class="mt-4 grid gap-4">
+					<label class="grid gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+						<span>Speed Preset</span>
+						<select class="reader-select" name="speed" data-speed-preset>
+							<option value="180">Slow / 180 WPM</option>
+							<option value="230" selected>Default / 230 WPM</option>
+							<option value="300">Fast / 300 WPM</option>
+						</select>
+					</label>
+					<label class="grid gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+						<span>Font Scale</span>
+						<input class="reader-range" name="font-scale" type="range" min="0.9" max="1.25" step="0.05" value="1" data-font-scale />
+					</label>
+					<label class="grid gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+						<span>Line Height</span>
+						<input class="reader-range" name="line-height" type="range" min="1.55" max="2" step="0.05" value="1.78" data-line-height />
+					</label>
+					<div class="grid grid-cols-2 gap-2" role="group" aria-label="Typeface">
+						<button class="filter-chip" type="button" data-font-choice="sans" aria-pressed="true">Sans</button>
+						<button class="filter-chip" type="button" data-font-choice="serif" aria-pressed="false">Serif</button>
+					</div>
+				</div>
+			</aside>
+		</div>
+	</section>
+
+	<div class="reading-progress-shell sticky top-20 z-30 mx-auto flex max-w-7xl justify-end px-5 sm:px-6 lg:px-8" data-reading-widget>
+		<div class="reading-progress-widget" aria-label="Reading progress">
+			<svg class="reading-progress-svg" viewBox="0 0 96 96" aria-hidden="true">
+				<circle class="reading-progress-track" cx="48" cy="48" r="42"></circle>
+				<circle class="reading-progress-ring" cx="48" cy="48" r="42" data-progress-ring></circle>
+			</svg>
+			<strong class="reading-progress-label" data-time-remaining data-word-count={post.body.split(/\s+/).length}>...</strong>
+		</div>
+	</div>
+
+	<div class="mx-auto grid max-w-6xl justify-center gap-10 px-5 py-12 sm:px-6 lg:grid-cols-[12rem_minmax(0,42rem)_18rem] lg:px-8" data-reading-layout>
+		<aside class="hidden lg:block" data-article-sidebar>
+			<div class="sticky top-28 max-w-48">
+				<p class="font-mono text-xs text-neutral-500">SECTIONS</p>
+				<nav class="mt-4 grid gap-2 text-sm text-neutral-500" aria-label="Article sections">
+					{headings.filter((heading) => heading.depth <= 3).map((heading) => (
+						<a class="hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href={`#${heading.slug}`}>{heading.text}</a>
+					))}
+				</nav>
+			</div>
+		</aside>
+
+		<article class="min-w-0 w-full max-w-2xl lg:mx-auto" data-reading-article>
+			<div class="reader-prose max-w-prose" data-reader-content>
+				<Content />
+			</div>
+		</article>
+
+		<aside class="hidden lg:block" data-deep-dive-panel>
+			<div class="sticky top-28 border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400">
+				<p class="font-mono text-xs">DEEP-DIVE VIEW</p>
+				<p class="mt-3 leading-6">Click footnotes, citations, and same-article section links to open the reference panel without moving your reading position.</p>
+			</div>
+		</aside>
+	</div>
+
+	<aside class="context-panel fixed bottom-0 right-0 top-0 z-50 w-full max-w-md overflow-y-auto border-l border-neutral-200 bg-white p-5 shadow-vercel dark:border-neutral-800 dark:bg-neutral-950" data-context-panel data-open="false" aria-live="polite" aria-label="Context panel">
+		<div class="flex items-center justify-between border-b border-neutral-200 pb-4 dark:border-neutral-800">
+			<p class="font-mono text-xs text-neutral-500">CONTEXT</p>
+			<button class="icon-btn" type="button" data-context-close aria-label="Close Context Panel">x</button>
+		</div>
+		<div class="mt-5 text-sm leading-7 text-neutral-700 dark:text-neutral-300" data-context-content>
+			Select a footnote or internal link to inspect it here.
+		</div>
+	</aside>
+</Layout>
+
+<style>
+	.reader-select,
+	.reader-range {
+		width: 100%;
+		border: 1px solid rgb(229 229 229);
+		background: #ffffff;
+		color: #171717;
+		padding: 0.5rem;
+		font-size: 0.875rem;
+	}
+
+	:global([data-theme="dark"]) .reader-select,
+	:global([data-theme="dark"]) .reader-range {
+		border-color: rgb(38 38 38);
+		background: #0a0a0a;
+		color: #ffffff;
+	}
+</style>
