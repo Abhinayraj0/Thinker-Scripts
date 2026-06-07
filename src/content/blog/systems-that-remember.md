@@ -3,7 +3,7 @@ title: "Systems That Remember"
 description: "The system of mind that changes the life and its situations slowly."
 publishedAt: 2026-05-22
 type: "Deep-Dive"
-categories: ["Technology", "Systems", "Thought"]
+categories: ["Thought", "Technology", "Systems"]
 tags: ["knowledge systems", "interfaces", "memory", "cognitive architectures for programming", "systems thinking software design", "designing fast context-aware reading interfaces"]
 readingMinutes: 9
 ---
