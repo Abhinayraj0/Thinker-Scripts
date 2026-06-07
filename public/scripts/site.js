@@ -10,6 +10,227 @@ function trackEvent(name, params = {}) {
 	});
 }
 
+const postTypes = ['Thought', 'Deep-Dive', 'Brief Notes', 'Review'];
+const postCategories = ['History', 'Thought', 'Personal', 'Fiction', 'Technology', 'Systems'];
+const localStoreKey = 'ts-control-center';
+
+function escapeHtml(value = '') {
+	return String(value).replace(/[&<>"']/g, (character) => {
+		const entities = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			"'": '&#39;',
+		};
+		return entities[character];
+	});
+}
+
+function slugify(value = '') {
+	return value
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.slice(0, 80);
+}
+
+function readStaticPosts() {
+	try {
+		return JSON.parse(document.getElementById('ts-static-posts')?.textContent || '[]').map((post) => ({
+			...post,
+			source: 'static',
+			deleted: false,
+		}));
+	} catch {
+		return [];
+	}
+}
+
+function readControlState() {
+	try {
+		const parsed = JSON.parse(localStorage.getItem(localStoreKey) || '{}');
+		return {
+			posts: Array.isArray(parsed.posts) ? parsed.posts : [],
+			settings: parsed.settings || {},
+		};
+	} catch {
+		return { posts: [], settings: {} };
+	}
+}
+
+function writeControlState(state) {
+	localStorage.setItem(localStoreKey, JSON.stringify(state));
+}
+
+function normalizePost(post) {
+	const title = post.title?.trim() || 'Untitled Post';
+	const id = slugify(post.id || post.slug || title) || `post-${Date.now()}`;
+	const categories = Array.isArray(post.categories)
+		? post.categories
+		: String(post.categories || '')
+			.split(',')
+			.map((value) => value.trim())
+			.filter(Boolean);
+	const validCategories = categories.filter((category) => postCategories.includes(category));
+	const tags = Array.isArray(post.tags)
+		? post.tags
+		: String(post.tags || '')
+			.split(',')
+			.map((value) => value.trim())
+			.filter(Boolean);
+
+	return {
+		id,
+		title,
+		description: post.description?.trim() || 'No description provided.',
+		publishedAt: post.publishedAt || new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		type: postTypes.includes(post.type) ? post.type : 'Thought',
+		categories: validCategories.length ? validCategories : ['Thought'],
+		tags,
+		readingMinutes: Math.max(1, Number.parseInt(post.readingMinutes, 10) || estimateReadingMinutes(post.body || '')),
+		draft: Boolean(post.draft),
+		deleted: Boolean(post.deleted),
+		body: post.body?.trim() || '## Draft\n\nStart writing here.',
+		source: post.source || 'local',
+	};
+}
+
+function estimateReadingMinutes(markdown = '') {
+	const words = markdown.trim().split(/\s+/).filter(Boolean).length;
+	return Math.max(1, Math.ceil(words / 230));
+}
+
+function getManagedPosts({ includeDrafts = false } = {}) {
+	const staticPosts = readStaticPosts();
+	const { posts: localPosts } = readControlState();
+	const byId = new Map(staticPosts.map((post) => [post.id, normalizePost(post)]));
+	localPosts.map(normalizePost).forEach((post) => byId.set(post.id, post));
+	return [...byId.values()]
+		.filter((post) => !post.deleted && (includeDrafts || !post.draft))
+		.sort((a, b) => new Date(b.publishedAt).valueOf() - new Date(a.publishedAt).valueOf());
+}
+
+function getDeletedPostIds() {
+	const { posts } = readControlState();
+	return new Set(posts.map(normalizePost).filter((post) => post.deleted).map((post) => post.id));
+}
+
+function saveManagedPost(post) {
+	const state = readControlState();
+	const normalized = normalizePost(post);
+	const localPosts = state.posts.filter((item) => normalizePost(item).id !== normalized.id);
+	localPosts.push({ ...normalized, source: 'local' });
+	writeControlState({ ...state, posts: localPosts });
+	return normalized;
+}
+
+function markPostDeleted(id) {
+	const state = readControlState();
+	const normalizedId = slugify(id);
+	const localPosts = state.posts.filter((item) => normalizePost(item).id !== normalizedId);
+	localPosts.push({
+		id: normalizedId,
+		title: normalizedId,
+		description: '',
+		publishedAt: new Date().toISOString(),
+		type: 'Thought',
+		categories: ['Thought'],
+		tags: [],
+		readingMinutes: 1,
+		draft: true,
+		deleted: true,
+		body: '',
+		source: 'local',
+	});
+	writeControlState({ ...state, posts: localPosts });
+}
+
+function formatDate(value, style = 'short') {
+	const date = new Date(value);
+	if (Number.isNaN(date.valueOf())) return '';
+	return new Intl.DateTimeFormat('en', {
+		month: style === 'long' ? 'long' : 'short',
+		day: 'numeric',
+		year: 'numeric',
+	}).format(date);
+}
+
+function renderMarkdown(markdown = '') {
+	const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+	const html = [];
+	let paragraph = [];
+	let list = [];
+
+	function flushParagraph() {
+		if (!paragraph.length) return;
+		html.push(`<p>${escapeHtml(paragraph.join(' '))}</p>`);
+		paragraph = [];
+	}
+
+	function flushList() {
+		if (!list.length) return;
+		html.push(`<ul>${list.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`);
+		list = [];
+	}
+
+	lines.forEach((line) => {
+		const trimmed = line.trim();
+		if (!trimmed) {
+			flushParagraph();
+			flushList();
+			return;
+		}
+		const heading = trimmed.match(/^(#{2,4})\s+(.+)$/);
+		const listItem = trimmed.match(/^[-*]\s+(.+)$/);
+		if (heading) {
+			flushParagraph();
+			flushList();
+			const level = heading[1].length;
+			const text = escapeHtml(heading[2]);
+			html.push(`<h${level}>${text}</h${level}>`);
+			return;
+		}
+		if (listItem) {
+			flushParagraph();
+			list.push(listItem[1]);
+			return;
+		}
+		flushList();
+		paragraph.push(trimmed);
+	});
+	flushParagraph();
+	flushList();
+	return html.join('\n');
+}
+
+function postHref(post) {
+	return post.source === 'static' ? `/posts/${post.id}/` : `/posts/?id=${encodeURIComponent(post.id)}`;
+}
+
+function renderPostCard(post) {
+	const categories = post.categories.map((category) => `<span class="border border-neutral-200 px-2 py-1 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">${escapeHtml(category)}</span>`).join('');
+	return `
+		<article class="post-card border border-neutral-200 bg-white p-5 transition-colors duration-150 hover:border-neutral-950 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-white" data-post-card data-local-managed="true" data-type="${escapeHtml(post.type)}" data-categories="${escapeHtml(post.categories.join('|'))}" data-reading-minutes="${post.readingMinutes}">
+			<a class="group grid gap-5 md:grid-cols-[1fr_180px]" href="${postHref(post)}">
+				<div class="min-w-0">
+					<div class="flex flex-wrap items-center gap-2 font-mono text-xs text-neutral-500 dark:text-neutral-400">
+						<span>${escapeHtml(post.type)}</span><span aria-hidden="true">/</span><span>${formatDate(post.publishedAt)}</span><span aria-hidden="true">/</span><span>${post.readingMinutes} Min</span>
+					</div>
+					<h3 class="mt-3 text-2xl font-semibold leading-tight text-pretty text-neutral-950 group-hover:underline group-hover:underline-offset-4 dark:text-white">${escapeHtml(post.title)}</h3>
+					<p class="mt-3 max-w-3xl text-sm leading-6 text-neutral-600 dark:text-neutral-300">${escapeHtml(post.description)}</p>
+					<div class="mt-4 flex flex-wrap gap-2">${categories}</div>
+				</div>
+				<div class="hidden border border-neutral-200 bg-neutral-50 p-5 md:grid dark:border-neutral-800 dark:bg-neutral-900">
+					<div class="grid h-full min-h-36 place-items-center border border-neutral-200 text-center font-mono text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">${escapeHtml(post.type)}</div>
+				</div>
+			</a>
+		</article>
+	`;
+}
+
 function setTheme(theme) {
 	root.dataset.theme = theme;
 	root.style.colorScheme = theme;
@@ -116,7 +337,7 @@ function initLibrary(signal) {
 	const library = document.querySelector('[data-library]');
 	if (!library) return;
 
-	const cards = [...library.querySelectorAll('[data-post-card]')];
+	const cards = [...library.querySelectorAll('[data-post-card]')].filter((card) => card.dataset.localSuppressed !== 'true');
 	const chips = [...library.querySelectorAll('[data-filter]')];
 	const count = library.querySelector('[data-result-count]');
 	const empty = library.querySelector('[data-empty-state]');
@@ -476,6 +697,86 @@ function initBackToTop(signal) {
 	update();
 }
 
+function initLocalSettings() {
+	const { settings } = readControlState();
+	if (settings.theme && settings.theme !== 'system') setTheme(settings.theme);
+	if (settings.readerScale) root.style.setProperty('--reader-scale', settings.readerScale);
+	if (settings.readerLeading) root.style.setProperty('--reader-leading', settings.readerLeading);
+	if (settings.zenDefault && document.querySelector('[data-zen-toggle]')) setZen(true);
+	const speedPreset = document.querySelector('[data-speed-preset]');
+	if (speedPreset && settings.readerSpeed) speedPreset.value = String(settings.readerSpeed);
+}
+
+function initLocalContent(signal) {
+	const posts = getManagedPosts();
+	const deletedIds = getDeletedPostIds();
+	const library = document.querySelector('[data-library]');
+	const list = library?.querySelector('[data-post-list]');
+	if (list) {
+		list.querySelectorAll('[data-local-managed]').forEach((node) => node.remove());
+		const staticCards = [...list.querySelectorAll('[data-post-card]:not([data-local-managed])')];
+		staticCards.forEach((card) => {
+			const slug = card.querySelector('a[href^="/posts/"]')?.getAttribute('href')?.split('/').filter(Boolean).at(-1);
+			const override = posts.find((post) => post.id === slug && post.source !== 'static');
+			if (override || deletedIds.has(slug)) {
+				card.hidden = true;
+				card.dataset.localSuppressed = 'true';
+			}
+		});
+		posts
+			.filter((post) => post.source !== 'static')
+			.forEach((post) => {
+				list.insertAdjacentHTML('beforeend', renderPostCard(post));
+			});
+	}
+
+	const homeFeatured = document.querySelector('[data-home-featured-posts]');
+	const homeRecent = document.querySelector('[data-home-recent-posts]');
+	if (homeFeatured && !library && location.pathname === '/') {
+		const latestLocal = posts.find((post) => post.source !== 'static');
+		if (latestLocal) homeFeatured.innerHTML = renderPostCard(latestLocal);
+	}
+	if (homeRecent && !library && location.pathname === '/') {
+		const localPosts = posts.filter((post) => post.source !== 'static').slice(1, 3);
+		localPosts.forEach((post) => homeRecent.insertAdjacentHTML('afterbegin', renderPostCard(post)));
+	}
+
+	const localContent = document.querySelector('[data-local-post-content]');
+	if (localContent) {
+		const id = new URLSearchParams(location.search).get('id');
+		const post = posts.find((item) => item.id === id);
+		if (post) renderArticleFromPost(post);
+	}
+
+	const staticArticle = document.querySelector('[data-reader-content]:not([data-local-post-content])');
+	if (staticArticle && location.pathname.startsWith('/posts/')) {
+		const slug = location.pathname.split('/').filter(Boolean).at(-1);
+		const post = posts.find((item) => item.id === slug && item.source !== 'static');
+		if (post) renderArticleFromPost(post);
+	}
+
+	window.addEventListener(
+		'storage',
+		(event) => {
+			if (event.key === localStoreKey) location.reload();
+		},
+		{ signal },
+	);
+}
+
+function renderArticleFromPost(post) {
+	document.querySelector('[data-local-post-title], [data-post-hero] h1')?.replaceChildren(document.createTextNode(post.title));
+	document.querySelector('[data-local-post-description], [data-post-hero] p:last-child')?.replaceChildren(document.createTextNode(post.description));
+	document.querySelector('[data-local-post-meta], [data-post-hero] .font-mono')?.replaceChildren(
+		document.createTextNode(`${post.type} / ${formatDate(post.publishedAt, 'long')} / ${post.readingMinutes} Min`),
+	);
+	const content = document.querySelector('[data-reader-content]');
+	if (content) content.innerHTML = renderMarkdown(post.body);
+	const wordCount = document.querySelector('[data-time-remaining]');
+	if (wordCount) wordCount.dataset.wordCount = String(post.body.split(/\s+/).filter(Boolean).length);
+	document.title = `${post.title} | Thinker Scripts`;
+}
+
 function initAnalytics(signal) {
 	document.addEventListener(
 		'click',
@@ -523,6 +824,8 @@ function initPage() {
 	initAnalytics(signal);
 	initTheme(signal);
 	initZen(signal);
+	initLocalSettings();
+	initLocalContent(signal);
 	initReadingProgress(signal);
 	initLibrary(signal);
 	initReaderControls(signal);

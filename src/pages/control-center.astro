@@ -4,154 +4,1055 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout
 	title="Control Center"
-	description="Frontend-only control center for managing Thinker Scripts posts, display settings, and browser-stored content."
+	description="Elite browser-only publishing control center for Thinker Scripts."
 	robots="noindex, nofollow"
 >
-	<section class="control-shell" data-control-center>
-		<div class="control-head">
+	<section class="cc-shell" id="controlCenter">
+		<header class="cc-hero">
 			<div>
-				<p class="font-mono text-xs text-neutral-500 dark:text-neutral-400">CONTROL CENTER</p>
-				<h1>Website controls without a backend.</h1>
-				<p>
-					Manage browser-stored posts, site display settings, drafts, imports, exports, and live previews. Changes are saved in this browser using local storage.
+				<p class="cc-kicker">THINKER SCRIPTS OPS</p>
+				<h1>Control Center</h1>
+				<p class="cc-lede">
+					A browser-only publishing desk for posts, local site settings, JSON backups, and GitHub live publishing.
 				</p>
 			</div>
-			<div class="control-status" aria-live="polite">
-				<span data-admin-status>Ready</span>
-				<strong data-admin-count>0 posts</strong>
+			<div class="cc-system">
+				<span id="ccStatus">Starting</span>
+				<strong id="ccCount">0 posts</strong>
+				<small id="ccHealth">JavaScript loading...</small>
 			</div>
-		</div>
+		</header>
 
-		<div class="control-grid">
-			<aside class="control-panel control-sidebar">
-				<div class="control-panel-head">
-					<h2>Posts</h2>
-					<button class="control-icon-btn" type="button" data-admin-new title="New post" aria-label="New post">+</button>
+		<div class="cc-layout">
+			<aside class="cc-panel cc-sidebar">
+				<div class="cc-panel-head">
+					<div>
+						<span>Archive</span>
+						<h2>Posts</h2>
+					</div>
+					<button class="cc-icon" id="newPostButton" type="button" aria-label="New post">+</button>
 				</div>
-				<label class="control-field">
-					<span>Search</span>
-					<input type="search" data-admin-search placeholder="Filter posts" />
+				<label class="cc-field">
+					<span>Search posts</span>
+					<input id="postSearch" type="search" placeholder="Title, slug, tag" autocomplete="off" />
 				</label>
-				<div class="control-post-list" data-admin-post-list></div>
+				<div class="cc-post-list" id="postList"></div>
 			</aside>
 
-			<section class="control-panel">
-				<div class="control-panel-head">
-					<h2>Editor</h2>
-					<div class="control-actions">
-						<button class="btn btn-secondary" type="button" data-admin-duplicate>Duplicate</button>
-						<button class="btn btn-secondary" type="button" data-admin-delete>Delete</button>
-						<button class="btn btn-primary" type="button" data-admin-save>Save</button>
+			<main class="cc-main">
+				<section class="cc-panel">
+					<div class="cc-panel-head">
+						<div>
+							<span>Compose</span>
+							<h2>Post Editor</h2>
+						</div>
+						<div class="cc-actions">
+							<button class="cc-button" id="duplicatePostButton" type="button">Duplicate</button>
+							<button class="cc-button" id="deletePostButton" type="button">Delete</button>
+							<button class="cc-button cc-button-primary" id="savePostButton" type="button">Save Local</button>
+						</div>
 					</div>
-				</div>
 
-				<form class="control-form" data-admin-form>
-					<input type="hidden" name="id" />
-					<div class="control-form-grid">
-						<label class="control-field">
-							<span>Slug</span>
-							<input name="slug" required pattern="[a-z0-9-]+" placeholder="post-slug" />
+					<form class="cc-form" id="postForm">
+						<input id="postSource" type="hidden" />
+						<div class="cc-form-grid">
+							<label class="cc-field">
+								<span>Slug</span>
+								<input id="postId" required pattern="[a-z0-9-]+" placeholder="post-slug" autocomplete="off" />
+							</label>
+							<label class="cc-field">
+								<span>Type</span>
+								<select id="postType">
+									<option>Thought</option>
+									<option>Deep-Dive</option>
+									<option>Brief Notes</option>
+									<option>Review</option>
+								</select>
+							</label>
+							<label class="cc-field cc-span-2">
+								<span>Title</span>
+								<input id="postTitle" required placeholder="Post title" autocomplete="off" />
+							</label>
+							<label class="cc-field cc-span-2">
+								<span>Description</span>
+								<textarea id="postDescription" rows="3" required placeholder="Short summary for cards, previews, and SEO"></textarea>
+							</label>
+							<label class="cc-field">
+								<span>Published date</span>
+								<input id="postDate" type="date" required />
+							</label>
+							<label class="cc-field">
+								<span>Reading minutes</span>
+								<input id="postMinutes" type="number" min="1" step="1" required />
+							</label>
+							<fieldset class="cc-field cc-span-2">
+								<span>Categories</span>
+								<div class="cc-check-grid" id="categoryGrid">
+									<label><input type="checkbox" value="History" />History</label>
+									<label><input type="checkbox" value="Thought" />Thought</label>
+									<label><input type="checkbox" value="Personal" />Personal</label>
+									<label><input type="checkbox" value="Fiction" />Fiction</label>
+									<label><input type="checkbox" value="Technology" />Technology</label>
+									<label><input type="checkbox" value="Systems" />Systems</label>
+								</div>
+							</fieldset>
+							<label class="cc-field cc-span-2">
+								<span>Tags</span>
+								<input id="postTags" placeholder="interfaces, cognition, software" autocomplete="off" />
+							</label>
+							<label class="cc-toggle">
+								<input id="postDraft" type="checkbox" />
+								<span>Keep as draft</span>
+							</label>
+							<label class="cc-field cc-span-2">
+								<span>Body Markdown</span>
+								<textarea id="postBody" rows="20" required placeholder="## Section heading&#10;&#10;Write the post body here."></textarea>
+							</label>
+						</div>
+					</form>
+				</section>
+
+				<section class="cc-panel">
+					<div class="cc-panel-head">
+						<div>
+							<span>Review</span>
+							<h2>Live Preview</h2>
+						</div>
+						<a class="cc-button" id="openPostLink" href="/library/">Open Post</a>
+					</div>
+					<article class="cc-preview" id="postPreview"></article>
+				</section>
+
+				<section class="cc-panel cc-wide">
+					<div class="cc-panel-head">
+						<div>
+							<span>Deploy</span>
+							<h2>Live Publish</h2>
+						</div>
+						<div class="cc-actions">
+							<button class="cc-button" id="savePublishButton" type="button">Save Config</button>
+							<button class="cc-button cc-button-primary" id="publishPostButton" type="button">Publish Current Post</button>
+						</div>
+					</div>
+					<div class="cc-form-grid">
+						<label class="cc-field">
+							<span>GitHub owner</span>
+							<input id="publishOwner" placeholder="Abhinayraj0" autocomplete="off" />
 						</label>
-						<label class="control-field">
-							<span>Type</span>
-							<select name="type">
-								<option>Thought</option>
-								<option>Deep-Dive</option>
-								<option>Brief Notes</option>
-								<option>Review</option>
-							</select>
+						<label class="cc-field">
+							<span>Repository</span>
+							<input id="publishRepo" placeholder="Thinker-Scripts" autocomplete="off" />
 						</label>
-						<label class="control-field control-field-wide">
-							<span>Title</span>
-							<input name="title" required placeholder="Post title" />
+						<label class="cc-field">
+							<span>Branch</span>
+							<input id="publishBranch" placeholder="main" autocomplete="off" />
 						</label>
-						<label class="control-field control-field-wide">
-							<span>Description</span>
-							<textarea name="description" rows="3" required placeholder="Short summary for cards and SEO"></textarea>
+						<label class="cc-field">
+							<span>Content folder</span>
+							<input id="publishPath" placeholder="src/content/blog" autocomplete="off" />
 						</label>
-						<label class="control-field">
-							<span>Published</span>
-							<input name="publishedAt" type="date" required />
+						<label class="cc-field cc-span-2">
+							<span>GitHub token</span>
+							<input id="publishToken" type="password" placeholder="Fine-grained token with Contents read/write" autocomplete="off" />
 						</label>
-						<label class="control-field">
-							<span>Reading Minutes</span>
-							<input name="readingMinutes" type="number" min="1" step="1" required />
-						</label>
-						<label class="control-field control-field-wide">
-							<span>Categories</span>
-							<input name="categories" placeholder="Technology, Systems" />
-						</label>
-						<label class="control-field control-field-wide">
-							<span>Tags</span>
-							<input name="tags" placeholder="interfaces, cognition, software" />
-						</label>
-						<label class="control-check">
-							<input name="draft" type="checkbox" />
-							<span>Keep as draft</span>
-						</label>
-						<label class="control-field control-field-wide">
-							<span>Body Markdown</span>
-							<textarea name="body" rows="16" required placeholder="## Section heading&#10;&#10;Write the post body here."></textarea>
+						<label class="cc-field cc-span-2">
+							<span>Deploy hook optional</span>
+							<input id="publishHook" placeholder="https://..." autocomplete="off" />
 						</label>
 					</div>
-				</form>
-			</section>
+					<p class="cc-note">
+						Live publish commits Markdown to GitHub. Use a fine-grained token limited to <strong>Abhinayraj0/Thinker-Scripts</strong> with repository Contents read/write. If your live host deploys from GitHub, the website updates after deployment completes.
+					</p>
+					<p class="cc-live-status" id="publishStatus" aria-live="polite">Publish config not saved.</p>
+				</section>
+			</main>
 
-			<section class="control-panel">
-				<div class="control-panel-head">
-					<h2>Preview</h2>
-					<a class="btn btn-secondary" href="/library/" data-admin-open-post>Open</a>
-				</div>
-				<article class="control-preview" data-admin-preview></article>
-			</section>
-
-			<section class="control-panel">
-				<div class="control-panel-head">
-					<h2>Website Options</h2>
-					<button class="btn btn-primary" type="button" data-admin-save-settings>Apply</button>
-				</div>
-				<div class="control-form-grid">
-					<label class="control-field">
+			<aside class="cc-rail">
+				<section class="cc-panel">
+					<div class="cc-panel-head">
+						<div>
+							<span>Site</span>
+							<h2>Options</h2>
+						</div>
+						<button class="cc-button cc-button-primary" id="saveSettingsButton" type="button">Apply</button>
+					</div>
+					<label class="cc-field">
 						<span>Theme</span>
-						<select data-setting-theme>
+						<select id="settingTheme">
 							<option value="system">System</option>
 							<option value="light">Light</option>
 							<option value="dark">Dark</option>
 						</select>
 					</label>
-					<label class="control-field">
-						<span>Reader Speed</span>
-						<input data-setting-speed type="number" min="120" max="500" step="10" />
+					<label class="cc-field">
+						<span>Reader speed</span>
+						<input id="settingSpeed" type="number" min="120" max="500" step="10" />
 					</label>
-					<label class="control-field">
-						<span>Font Scale</span>
-						<input data-setting-scale type="number" min="0.9" max="1.25" step="0.05" />
+					<label class="cc-field">
+						<span>Font scale</span>
+						<input id="settingScale" type="number" min="0.9" max="1.25" step="0.05" />
 					</label>
-					<label class="control-field">
-						<span>Line Height</span>
-						<input data-setting-leading type="number" min="1.45" max="2.05" step="0.05" />
+					<label class="cc-field">
+						<span>Line height</span>
+						<input id="settingLeading" type="number" min="1.45" max="2.05" step="0.05" />
 					</label>
-					<label class="control-check">
-						<input data-setting-zen type="checkbox" />
+					<label class="cc-toggle">
+						<input id="settingZen" type="checkbox" />
 						<span>Start reader pages in Zen mode</span>
 					</label>
-				</div>
-			</section>
+				</section>
 
-			<section class="control-panel">
-				<div class="control-panel-head">
-					<h2>Import / Export</h2>
-					<div class="control-actions">
-						<button class="btn btn-secondary" type="button" data-admin-export>Export JSON</button>
-						<button class="btn btn-secondary" type="button" data-admin-reset>Reset Local Edits</button>
+				<section class="cc-panel">
+					<div class="cc-panel-head">
+						<div>
+							<span>Backup</span>
+							<h2>Import / Export</h2>
+						</div>
 					</div>
-				</div>
-				<label class="control-field">
-					<span>Paste exported JSON</span>
-					<textarea rows="7" data-admin-import-box placeholder='{"posts":[...],"settings":{...}}'></textarea>
-				</label>
-				<button class="btn btn-primary" type="button" data-admin-import>Import</button>
-			</section>
+					<label class="cc-field">
+						<span>Paste JSON</span>
+						<textarea id="importBox" rows="8" placeholder='{"posts":[...],"settings":{...}}'></textarea>
+					</label>
+					<div class="cc-actions cc-actions-stack">
+						<button class="cc-button" id="importButton" type="button">Import JSON</button>
+						<button class="cc-button" id="exportButton" type="button">Export JSON</button>
+						<button class="cc-button" id="resetButton" type="button">Reset Local Data</button>
+					</div>
+				</section>
+			</aside>
 		</div>
 	</section>
+
+	<style>
+		.cc-shell {
+			--cc-bg: #f7efe6;
+			--cc-panel: #fffaf4;
+			--cc-panel-strong: #fff6ec;
+			--cc-ink: #241d18;
+			--cc-muted: #6c5b4f;
+			--cc-line: #e3d1bf;
+			--cc-accent: #2f6f64;
+			--cc-accent-ink: #ffffff;
+			width: min(96rem, calc(100vw - 1.5rem));
+			margin-inline: auto;
+			padding: 2rem 0 4rem;
+			color: var(--cc-ink);
+		}
+
+		.cc-hero {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) 16rem;
+			gap: 1rem;
+			align-items: end;
+			border: 1px solid var(--cc-line);
+			background:
+				linear-gradient(135deg, rgb(255 250 244 / 0.94), rgb(240 228 214 / 0.82)),
+				var(--cc-panel);
+			padding: clamp(1rem, 3vw, 2rem);
+			box-shadow: 0 18px 50px rgb(80 55 34 / 0.08);
+		}
+
+		.cc-kicker,
+		.cc-panel-head span,
+		.cc-field > span,
+		.cc-system span,
+		.cc-system small {
+			font-family: var(--font-mono);
+			font-size: 0.7rem;
+			letter-spacing: 0;
+			text-transform: uppercase;
+			color: var(--cc-muted);
+		}
+
+		.cc-hero h1 {
+			margin-top: 0.6rem;
+			font-size: clamp(3rem, 8vw, 7.5rem);
+			font-weight: 700;
+			line-height: 0.9;
+			color: var(--cc-ink);
+		}
+
+		.cc-lede {
+			max-width: 45rem;
+			margin-top: 1rem;
+			color: var(--cc-muted);
+			font-size: 1rem;
+			line-height: 1.75;
+		}
+
+		.cc-system,
+		.cc-panel {
+			border: 1px solid var(--cc-line);
+			background: var(--cc-panel);
+		}
+
+		.cc-system {
+			display: grid;
+			gap: 0.4rem;
+			padding: 1rem;
+			text-align: right;
+		}
+
+		.cc-system strong {
+			font-size: 1.35rem;
+		}
+
+		.cc-layout {
+			display: grid;
+			grid-template-columns: 20rem minmax(0, 1fr) 22rem;
+			gap: 1rem;
+			margin-top: 1rem;
+			align-items: start;
+		}
+
+		.cc-main,
+		.cc-rail {
+			display: grid;
+			gap: 1rem;
+		}
+
+		.cc-sidebar {
+			position: sticky;
+			top: 5rem;
+			max-height: calc(100vh - 6rem);
+			overflow: auto;
+		}
+
+		.cc-panel {
+			padding: 1rem;
+			box-shadow: 0 14px 38px rgb(80 55 34 / 0.06);
+		}
+
+		.cc-panel-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			border-bottom: 1px solid var(--cc-line);
+			padding-bottom: 0.8rem;
+		}
+
+		.cc-panel-head h2 {
+			margin-top: 0.15rem;
+			font-size: 1.05rem;
+			font-weight: 700;
+		}
+
+		.cc-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			justify-content: flex-end;
+		}
+
+		.cc-actions-stack {
+			display: grid;
+			justify-content: stretch;
+		}
+
+		.cc-button,
+		.cc-icon {
+			border: 1px solid var(--cc-line);
+			background: #ffffff;
+			color: var(--cc-ink);
+			min-height: 2.55rem;
+			padding: 0 0.85rem;
+			font-size: 0.86rem;
+			font-weight: 700;
+			transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+		}
+
+		.cc-button:hover,
+		.cc-icon:hover {
+			border-color: var(--cc-ink);
+			transform: translateY(-1px);
+		}
+
+		.cc-button-primary,
+		.cc-icon {
+			border-color: var(--cc-accent);
+			background: var(--cc-accent);
+			color: var(--cc-accent-ink);
+		}
+
+		.cc-icon {
+			display: grid;
+			width: 2.4rem;
+			place-items: center;
+			padding: 0;
+			font-size: 1.3rem;
+		}
+
+		.cc-form,
+		.cc-form-grid,
+		.cc-field,
+		.cc-post-list,
+		.cc-preview,
+		.cc-note,
+		.cc-live-status {
+			margin-top: 1rem;
+		}
+
+		.cc-form-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.8rem;
+		}
+
+		.cc-span-2 {
+			grid-column: 1 / -1;
+		}
+
+		.cc-field {
+			display: grid;
+			gap: 0.45rem;
+			min-width: 0;
+		}
+
+		.cc-field input,
+		.cc-field select,
+		.cc-field textarea {
+			width: 100%;
+			border: 1px solid var(--cc-line);
+			background: #ffffff;
+			color: var(--cc-ink);
+			padding: 0.72rem 0.78rem;
+			font: inherit;
+			font-size: 0.92rem;
+			line-height: 1.45;
+		}
+
+		.cc-field textarea {
+			resize: vertical;
+		}
+
+		.cc-check-grid {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 0.45rem;
+			border: 1px solid var(--cc-line);
+			background: #ffffff;
+			padding: 0.7rem;
+		}
+
+		.cc-check-grid label,
+		.cc-toggle {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			color: var(--cc-muted);
+			font-size: 0.9rem;
+		}
+
+		.cc-check-grid input,
+		.cc-toggle input {
+			width: 1rem;
+			height: 1rem;
+			accent-color: var(--cc-accent);
+		}
+
+		.cc-toggle {
+			align-self: end;
+			min-height: 2.6rem;
+		}
+
+		.cc-post-row {
+			display: grid;
+			width: 100%;
+			gap: 0.35rem;
+			border: 1px solid var(--cc-line);
+			background: #ffffff;
+			padding: 0.75rem;
+			text-align: left;
+		}
+
+		.cc-post-row + .cc-post-row {
+			margin-top: 0.5rem;
+		}
+
+		.cc-post-row:hover,
+		.cc-post-row[aria-pressed="true"] {
+			border-color: var(--cc-accent);
+			background: #f4fbf7;
+		}
+
+		.cc-post-row strong {
+			color: var(--cc-ink);
+			font-size: 0.95rem;
+			line-height: 1.35;
+		}
+
+		.cc-post-row small,
+		.cc-empty {
+			font-family: var(--font-mono);
+			font-size: 0.68rem;
+			color: var(--cc-muted);
+			text-transform: uppercase;
+		}
+
+		.cc-preview h3 {
+			margin-top: 0.6rem;
+			color: var(--cc-ink);
+			font-size: 2rem;
+			font-weight: 700;
+			line-height: 1.1;
+		}
+
+		.cc-preview p {
+			color: var(--cc-muted);
+			line-height: 1.7;
+		}
+
+		.cc-preview-body {
+			margin-top: 1rem;
+			max-height: 32rem;
+			overflow: auto;
+			border-top: 1px solid var(--cc-line);
+			padding-top: 1rem;
+		}
+
+		.cc-note,
+		.cc-live-status {
+			color: var(--cc-muted);
+			font-size: 0.86rem;
+			line-height: 1.6;
+		}
+
+		.cc-live-status {
+			border: 1px solid var(--cc-line);
+			background: var(--cc-panel-strong);
+			padding: 0.75rem;
+			color: var(--cc-ink);
+		}
+
+		.cc-button:focus-visible,
+		.cc-icon:focus-visible,
+		.cc-field input:focus-visible,
+		.cc-field select:focus-visible,
+		.cc-field textarea:focus-visible,
+		.cc-check-grid input:focus-visible,
+		.cc-toggle input:focus-visible {
+			outline: 2px solid var(--cc-accent);
+			outline-offset: 2px;
+		}
+
+		:global([data-theme="dark"]) .cc-shell {
+			--cc-bg: #0d0d0c;
+			--cc-panel: #111110;
+			--cc-panel-strong: #171716;
+			--cc-ink: #f5f1eb;
+			--cc-muted: #b9aea1;
+			--cc-line: #312d29;
+			--cc-accent: #58a696;
+			--cc-accent-ink: #08110f;
+		}
+
+		:global([data-theme="dark"]) .cc-button,
+		:global([data-theme="dark"]) .cc-field input,
+		:global([data-theme="dark"]) .cc-field select,
+		:global([data-theme="dark"]) .cc-field textarea,
+		:global([data-theme="dark"]) .cc-check-grid,
+		:global([data-theme="dark"]) .cc-post-row {
+			background: #0a0a09;
+			color: var(--cc-ink);
+		}
+
+		@media (max-width: 72rem) {
+			.cc-hero,
+			.cc-layout {
+				grid-template-columns: 1fr;
+			}
+
+			.cc-system {
+				text-align: left;
+			}
+
+			.cc-sidebar {
+				position: static;
+				max-height: none;
+			}
+		}
+
+		@media (max-width: 40rem) {
+			.cc-shell {
+				width: min(100% - 1rem, 96rem);
+				padding-top: 1rem;
+			}
+
+			.cc-form-grid,
+			.cc-check-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.cc-panel-head {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.cc-actions {
+				width: 100%;
+				justify-content: flex-start;
+			}
+		}
+	</style>
+
+	<script is:inline>
+		(() => {
+			const STORE_KEY = 'ts-control-center';
+			const TYPES = ['Thought', 'Deep-Dive', 'Brief Notes', 'Review'];
+			const CATEGORIES = ['History', 'Thought', 'Personal', 'Fiction', 'Technology', 'Systems'];
+			const $ = (id) => document.getElementById(id);
+			const status = $('ccStatus');
+			const count = $('ccCount');
+			const health = $('ccHealth');
+			let selectedId = '';
+
+			const fields = {
+				source: $('postSource'),
+				id: $('postId'),
+				title: $('postTitle'),
+				description: $('postDescription'),
+				date: $('postDate'),
+				type: $('postType'),
+				minutes: $('postMinutes'),
+				tags: $('postTags'),
+				draft: $('postDraft'),
+				body: $('postBody'),
+			};
+
+			function setStatus(message) {
+				status.textContent = message;
+			}
+
+			function escapeHtml(value = '') {
+				return String(value).replace(/[&<>"']/g, (char) => ({
+					'&': '&amp;',
+					'<': '&lt;',
+					'>': '&gt;',
+					'"': '&quot;',
+					"'": '&#39;',
+				}[char]));
+			}
+
+			function slugify(value = '') {
+				return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+			}
+
+			function readStaticPosts() {
+				try {
+					return JSON.parse(document.getElementById('ts-static-posts')?.textContent || '[]').map((post) => normalizePost({ ...post, source: 'static' }));
+				} catch {
+					return [];
+				}
+			}
+
+			function readState() {
+				try {
+					const parsed = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+					return {
+						posts: Array.isArray(parsed.posts) ? parsed.posts : [],
+						settings: parsed.settings || {},
+					};
+				} catch {
+					return { posts: [], settings: {} };
+				}
+			}
+
+			function writeState(state) {
+				localStorage.setItem(STORE_KEY, JSON.stringify({
+					posts: Array.isArray(state.posts) ? state.posts : [],
+					settings: state.settings || {},
+				}));
+			}
+
+			function estimateMinutes(markdown = '') {
+				return Math.max(1, Math.ceil(markdown.trim().split(/\s+/).filter(Boolean).length / 230));
+			}
+
+			function normalizePost(post = {}) {
+				const body = String(post.body || '').trim() || '## Draft\n\nStart writing here.';
+				const rawCategories = Array.isArray(post.categories) ? post.categories : String(post.categories || '').split(',');
+				const categories = rawCategories.map((item) => String(item).trim()).filter((item) => CATEGORIES.includes(item));
+				const tags = Array.isArray(post.tags) ? post.tags : String(post.tags || '').split(',');
+				const title = String(post.title || '').trim() || 'Untitled Post';
+				return {
+					id: slugify(post.id || post.slug || title) || `draft-${Date.now()}`,
+					source: post.source === 'static' ? 'static' : 'local',
+					title,
+					description: String(post.description || '').trim() || 'No description provided.',
+					publishedAt: post.publishedAt || new Date().toISOString(),
+					updatedAt: post.updatedAt || new Date().toISOString(),
+					type: TYPES.includes(post.type) ? post.type : 'Thought',
+					categories: categories.length ? categories : ['Thought'],
+					tags: tags.map((item) => String(item).trim()).filter(Boolean),
+					readingMinutes: Math.max(1, Number.parseInt(post.readingMinutes, 10) || estimateMinutes(body)),
+					draft: Boolean(post.draft),
+					deleted: Boolean(post.deleted),
+					body,
+				};
+			}
+
+			function allPosts() {
+				const map = new Map(readStaticPosts().map((post) => [post.id, post]));
+				readState().posts.map(normalizePost).forEach((post) => map.set(post.id, post));
+				return [...map.values()].filter((post) => !post.deleted).sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+			}
+
+			function dateValue(value) {
+				const date = new Date(value);
+				return Number.isNaN(date.valueOf()) ? new Date().toISOString().slice(0, 10) : date.toISOString().slice(0, 10);
+			}
+
+			function displayDate(value) {
+				const date = new Date(value);
+				return Number.isNaN(date.valueOf()) ? '' : new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+			}
+
+			function checkedCategories() {
+				return [...document.querySelectorAll('#categoryGrid input:checked')].map((input) => input.value);
+			}
+
+			function setCategories(categories) {
+				document.querySelectorAll('#categoryGrid input').forEach((input) => {
+					input.checked = categories.includes(input.value);
+				});
+			}
+
+			function formPost() {
+				return normalizePost({
+					id: fields.id.value,
+					source: fields.source.value || 'local',
+					title: fields.title.value,
+					description: fields.description.value,
+					publishedAt: fields.date.value ? new Date(fields.date.value).toISOString() : new Date().toISOString(),
+					type: fields.type.value,
+					categories: checkedCategories(),
+					tags: fields.tags.value,
+					readingMinutes: fields.minutes.value,
+					draft: fields.draft.checked,
+					body: fields.body.value,
+				});
+			}
+
+			function postUrl(post) {
+				return post.source === 'static' ? `/posts/${post.id}/` : `/posts/?id=${encodeURIComponent(post.id)}`;
+			}
+
+			function markdownHtml(markdown = '') {
+				const html = [];
+				let paragraph = [];
+				let list = [];
+				const flushParagraph = () => {
+					if (!paragraph.length) return;
+					html.push(`<p>${escapeHtml(paragraph.join(' '))}</p>`);
+					paragraph = [];
+				};
+				const flushList = () => {
+					if (!list.length) return;
+					html.push(`<ul>${list.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`);
+					list = [];
+				};
+				markdown.replace(/\r\n/g, '\n').split('\n').forEach((line) => {
+					const text = line.trim();
+					if (!text) {
+						flushParagraph();
+						flushList();
+						return;
+					}
+					const heading = text.match(/^(#{2,4})\s+(.+)$/);
+					const bullet = text.match(/^[-*]\s+(.+)$/);
+					if (heading) {
+						flushParagraph();
+						flushList();
+						html.push(`<h${heading[1].length}>${escapeHtml(heading[2])}</h${heading[1].length}>`);
+					} else if (bullet) {
+						flushParagraph();
+						list.push(bullet[1]);
+					} else {
+						flushList();
+						paragraph.push(text);
+					}
+				});
+				flushParagraph();
+				flushList();
+				return html.join('');
+			}
+
+			function renderPreview() {
+				const post = formPost();
+				$('openPostLink').href = postUrl(post);
+				$('postPreview').innerHTML = `
+					<p>${escapeHtml(post.type)} / ${displayDate(post.publishedAt)} / ${post.readingMinutes} Min${post.draft ? ' / Draft' : ''}</p>
+					<h3>${escapeHtml(post.title)}</h3>
+					<p>${escapeHtml(post.description)}</p>
+					<div class="cc-preview-body reader-prose">${markdownHtml(post.body)}</div>
+				`;
+			}
+
+			function fillForm(post) {
+				const item = normalizePost(post);
+				selectedId = item.id;
+				fields.source.value = item.source;
+				fields.id.value = item.id;
+				fields.title.value = item.title;
+				fields.description.value = item.description;
+				fields.date.value = dateValue(item.publishedAt);
+				fields.type.value = item.type;
+				fields.minutes.value = item.readingMinutes;
+				fields.tags.value = item.tags.join(', ');
+				fields.draft.checked = item.draft;
+				fields.body.value = item.body;
+				setCategories(item.categories);
+				renderPreview();
+				renderList();
+			}
+
+			function savePost(post) {
+				const state = readState();
+				const item = normalizePost({ ...post, source: 'local', updatedAt: new Date().toISOString() });
+				writeState({
+					...state,
+					posts: [...state.posts.map(normalizePost).filter((saved) => saved.id !== item.id), item],
+				});
+				return item;
+			}
+
+			function renderList() {
+				const query = $('postSearch').value.trim().toLowerCase();
+				const posts = allPosts().filter((post) => `${post.id} ${post.title} ${post.description} ${post.tags.join(' ')}`.toLowerCase().includes(query));
+				count.textContent = `${posts.length} posts`;
+				$('postList').innerHTML = posts.length ? posts.map((post) => `
+					<button class="cc-post-row" type="button" data-id="${escapeHtml(post.id)}" aria-pressed="${post.id === selectedId}">
+						<strong>${escapeHtml(post.title)}</strong>
+						<small>${escapeHtml(post.source)}${post.draft ? ' / draft' : ''} / ${displayDate(post.publishedAt)}</small>
+					</button>
+				`).join('') : '<p class="cc-empty">No posts found.</p>';
+			}
+
+			function newPost() {
+				fillForm({
+					id: `draft-${Date.now()}`,
+					source: 'local',
+					title: 'New Post',
+					description: 'A short description for the new post.',
+					publishedAt: new Date().toISOString(),
+					type: 'Thought',
+					categories: ['Thought'],
+					tags: [],
+					readingMinutes: 1,
+					draft: true,
+					body: '## Section\n\nWrite the first paragraph here.',
+				});
+				setStatus('New draft ready');
+			}
+
+			function requireValidPost() {
+				const form = $('postForm');
+				if (!form.reportValidity()) return null;
+				return formPost();
+			}
+
+			function yamlString(value = '') {
+				return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+			}
+
+			function markdownFile(post) {
+				const item = normalizePost(post);
+				const array = (values) => `[${values.map(yamlString).join(', ')}]`;
+				return `---\ntitle: ${yamlString(item.title)}\ndescription: ${yamlString(item.description)}\npublishedAt: ${dateValue(item.publishedAt)}\ntype: ${yamlString(item.type)}\ncategories: ${array(item.categories)}\ntags: ${array(item.tags)}\nreadingMinutes: ${item.readingMinutes}\n${item.draft ? 'draft: true\n' : ''}---\n\n${item.body.trim()}\n`;
+			}
+
+			function base64(value) {
+				const bytes = new TextEncoder().encode(value);
+				let binary = '';
+				bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+				return btoa(binary);
+			}
+
+			function publishConfig() {
+				return {
+					owner: $('publishOwner').value.trim(),
+					repo: $('publishRepo').value.trim(),
+					branch: $('publishBranch').value.trim() || 'main',
+					path: $('publishPath').value.trim().replace(/^\/+|\/+$/g, '') || 'src/content/blog',
+					token: $('publishToken').value.trim(),
+					hook: $('publishHook').value.trim(),
+				};
+			}
+
+			function publishMessage(config) {
+				const missing = [];
+				if (!config.owner) missing.push('owner');
+				if (!config.repo) missing.push('repository');
+				if (!config.token) missing.push('token');
+				return missing.length ? `Config saved, but missing ${missing.join(', ')}.` : `Config saved for ${config.owner}/${config.repo} on ${config.branch}.`;
+			}
+
+			function setPublishStatus(message) {
+				$('publishStatus').textContent = message;
+				setStatus(message);
+			}
+
+			function savePublishConfig() {
+				const state = readState();
+				const publish = publishConfig();
+				writeState({ ...state, settings: { ...state.settings, publish } });
+				setPublishStatus(publishMessage(publish));
+			}
+
+			async function publishCurrentPost() {
+				const post = requireValidPost();
+				if (!post) return;
+				const config = publishConfig();
+				if (!config.owner || !config.repo || !config.token) {
+					setPublishStatus(publishMessage(config));
+					return;
+				}
+				const saved = savePost(post);
+				fillForm(saved);
+				savePublishConfig();
+
+				const filePath = `${config.path}/${saved.id}.md`;
+				const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
+				const apiUrl = `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}/contents/${encodedPath}`;
+				const headers = {
+					Authorization: `Bearer ${config.token}`,
+					Accept: 'application/vnd.github+json',
+					'X-GitHub-Api-Version': '2022-11-28',
+				};
+				let sha;
+				setPublishStatus('Checking GitHub file...');
+				const existing = await fetch(`${apiUrl}?ref=${encodeURIComponent(config.branch)}`, { headers });
+				if (existing.ok) sha = (await existing.json()).sha;
+				else if (existing.status !== 404) throw new Error(`GitHub lookup failed (${existing.status}).`);
+
+				setPublishStatus('Publishing Markdown to GitHub...');
+				const response = await fetch(apiUrl, {
+					method: 'PUT',
+					headers: { ...headers, 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						message: `${sha ? 'Update' : 'Create'} post: ${saved.title}`,
+						content: base64(markdownFile(saved)),
+						branch: config.branch,
+						...(sha ? { sha } : {}),
+					}),
+				});
+				if (!response.ok) {
+					const payload = await response.json().catch(() => ({}));
+					throw new Error(payload.message || `GitHub publish failed (${response.status}).`);
+				}
+				if (config.hook) {
+					setPublishStatus('Triggering deploy hook...');
+					await fetch(config.hook, { method: 'POST', mode: 'no-cors' });
+				}
+				setPublishStatus(config.hook ? 'Published and deploy hook called.' : 'Published to GitHub. Wait for deployment.');
+			}
+
+			function loadSettings() {
+				const settings = readState().settings || {};
+				$('settingTheme').value = settings.theme || 'system';
+				$('settingSpeed').value = settings.readerSpeed || 230;
+				$('settingScale').value = settings.readerScale || 1;
+				$('settingLeading').value = settings.readerLeading || 1.78;
+				$('settingZen').checked = Boolean(settings.zenDefault);
+				const publish = settings.publish || {};
+				$('publishOwner').value = publish.owner || '';
+				$('publishRepo').value = publish.repo || '';
+				$('publishBranch').value = publish.branch || 'main';
+				$('publishPath').value = publish.path || 'src/content/blog';
+				$('publishToken').value = publish.token || '';
+				$('publishHook').value = publish.hook || '';
+			}
+
+			function bind() {
+				$('newPostButton').addEventListener('click', newPost);
+				$('savePostButton').addEventListener('click', () => {
+					const post = requireValidPost();
+					if (!post) return;
+					fillForm(savePost(post));
+					setStatus('Saved locally');
+				});
+				$('duplicatePostButton').addEventListener('click', () => {
+					const post = formPost();
+					post.id = slugify(`${post.id}-copy`);
+					post.title = `${post.title} Copy`;
+					fillForm(savePost(post));
+					setStatus('Duplicated');
+				});
+				$('deletePostButton').addEventListener('click', () => {
+					const state = readState();
+					writeState({
+						...state,
+						posts: [...state.posts.map(normalizePost).filter((post) => post.id !== selectedId), normalizePost({ id: selectedId, title: selectedId, deleted: true, draft: true })],
+					});
+					newPost();
+					setStatus('Deleted locally');
+				});
+				$('postList').addEventListener('click', (event) => {
+					const row = event.target.closest('[data-id]');
+					if (!row) return;
+					const post = allPosts().find((item) => item.id === row.dataset.id);
+					if (post) fillForm(post);
+				});
+				$('postForm').addEventListener('input', () => {
+					if (!fields.id.value || fields.id.value.startsWith('draft-')) fields.id.value = slugify(fields.title.value);
+					renderPreview();
+				});
+				$('postSearch').addEventListener('input', renderList);
+				$('saveSettingsButton').addEventListener('click', () => {
+					const state = readState();
+					writeState({
+						...state,
+						settings: {
+							...state.settings,
+							theme: $('settingTheme').value,
+							readerSpeed: Number($('settingSpeed').value) || 230,
+							readerScale: String($('settingScale').value || 1),
+							readerLeading: String($('settingLeading').value || 1.78),
+							zenDefault: $('settingZen').checked,
+						},
+					});
+					setStatus('Website options saved');
+				});
+				$('savePublishButton').addEventListener('click', savePublishConfig);
+				$('publishPostButton').addEventListener('click', () => publishCurrentPost().catch((error) => setPublishStatus(error.message || 'Publish failed.')));
+				$('exportButton').addEventListener('click', () => {
+					const url = URL.createObjectURL(new Blob([JSON.stringify(readState(), null, 2)], { type: 'application/json' }));
+					const link = document.createElement('a');
+					link.href = url;
+					link.download = 'thinker-scripts-control-center.json';
+					link.click();
+					URL.revokeObjectURL(url);
+					setStatus('Exported JSON');
+				});
+				$('importButton').addEventListener('click', () => {
+					try {
+						const parsed = JSON.parse($('importBox').value || '{}');
+						writeState({ posts: Array.isArray(parsed.posts) ? parsed.posts.map(normalizePost) : [], settings: parsed.settings || {} });
+						loadSettings();
+						fillForm(allPosts()[0] || {});
+						setStatus('Imported JSON');
+					} catch {
+						setStatus('Import failed');
+					}
+				});
+				$('resetButton').addEventListener('click', () => {
+					localStorage.removeItem(STORE_KEY);
+					loadSettings();
+					fillForm(allPosts()[0] || {});
+					setStatus('Local data reset');
+				});
+			}
+
+			function boot() {
+				bind();
+				loadSettings();
+				fillForm(allPosts()[0] || {});
+				health.textContent = 'Control script active';
+				setStatus('Ready');
+			}
+
+			boot();
+		})();
+	</script>
 </Layout>

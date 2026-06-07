@@ -73,7 +73,9 @@ const pageLinks = [
 					Read essays about building cognitive frameworks for complex systems, first principles software development, and the mechanics of context-aware reading interfaces.
 				</p>
 			</div>
-			{featuredPost && <PostCard post={featuredPost} />}
+			<div data-home-featured-posts>
+				{featuredPost && <PostCard post={featuredPost} />}
+			</div>
 		</div>
 	</section>
 
@@ -85,7 +87,7 @@ const pageLinks = [
 			</div>
 			<a class="btn btn-secondary" href="/library/">Open Full Library</a>
 		</div>
-		<div class="mt-8 grid gap-4">
+		<div class="mt-8 grid gap-4" data-home-recent-posts>
 			{recentPosts.map((post) => <PostCard post={post} />)}
 		</div>
 	</section>

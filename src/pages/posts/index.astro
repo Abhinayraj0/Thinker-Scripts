@@ -1,0 +1,50 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+	title="Local Post"
+	description="Read a post created from the frontend-only Thinker Scripts control center."
+	type="article"
+	robots="noindex, nofollow"
+	zenCapable
+>
+	<section class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950" data-post-hero data-local-post-hero>
+		<div class="mx-auto max-w-5xl px-5 py-12 sm:px-6 lg:px-8">
+			<div class="max-w-4xl">
+				<a class="text-sm text-neutral-500 hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 dark:hover:text-white dark:focus-visible:outline-white" href="/library/">&lt;- Back to Library</a>
+				<p class="mt-8 font-mono text-xs text-neutral-500" data-local-post-meta>LOCAL POST</p>
+				<h1 class="mt-4 max-w-4xl text-4xl font-semibold leading-tight text-pretty text-neutral-950 sm:text-6xl dark:text-white" data-local-post-title>Local post not found</h1>
+				<p class="mt-6 max-w-3xl text-lg leading-8 text-neutral-600 dark:text-neutral-300" data-local-post-description>
+					Open a post from the control center or library.
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<div class="reading-progress-shell" data-reading-widget>
+		<div class="reading-progress-widget" aria-label="Reading progress">
+			<div class="reading-progress-meta">
+				<strong data-time-remaining data-word-count="0">...</strong>
+				<span data-progress-percent>0%</span>
+			</div>
+			<div class="reading-progress-track" data-progress-meter aria-label="Reading progress">
+				<span data-progress-bar></span>
+			</div>
+			<div class="reading-progress-orb" aria-hidden="true">
+				<svg viewBox="0 0 48 48">
+					<circle class="reading-progress-orb__track" cx="24" cy="24" r="20"></circle>
+					<circle class="reading-progress-orb__value" cx="24" cy="24" r="20" pathLength="100" data-zen-progress-ring></circle>
+				</svg>
+			</div>
+		</div>
+	</div>
+
+	<div class="mx-auto max-w-5xl px-5 py-12 sm:px-6 lg:px-8" data-reading-layout>
+		<article class="min-w-0 w-full max-w-2xl lg:mx-auto" data-reading-article>
+			<div class="reader-prose max-w-prose" data-reader-content data-local-post-content>
+				<p>This browser does not have a local post with that slug.</p>
+			</div>
+		</article>
+	</div>
+</Layout>
