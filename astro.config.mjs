@@ -4,7 +4,7 @@ import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-	site: 'https://thinkerscripts.com',
+	site: 'https://thinker-scripts.araj20164.workers.dev',
 	devToolbar: {
 		enabled: false,
 	},

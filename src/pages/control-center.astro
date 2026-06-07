@@ -1,0 +1,157 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+	title="Control Center"
+	description="Frontend-only control center for managing Thinker Scripts posts, display settings, and browser-stored content."
+	robots="noindex, nofollow"
+>
+	<section class="control-shell" data-control-center>
+		<div class="control-head">
+			<div>
+				<p class="font-mono text-xs text-neutral-500 dark:text-neutral-400">CONTROL CENTER</p>
+				<h1>Website controls without a backend.</h1>
+				<p>
+					Manage browser-stored posts, site display settings, drafts, imports, exports, and live previews. Changes are saved in this browser using local storage.
+				</p>
+			</div>
+			<div class="control-status" aria-live="polite">
+				<span data-admin-status>Ready</span>
+				<strong data-admin-count>0 posts</strong>
+			</div>
+		</div>
+
+		<div class="control-grid">
+			<aside class="control-panel control-sidebar">
+				<div class="control-panel-head">
+					<h2>Posts</h2>
+					<button class="control-icon-btn" type="button" data-admin-new title="New post" aria-label="New post">+</button>
+				</div>
+				<label class="control-field">
+					<span>Search</span>
+					<input type="search" data-admin-search placeholder="Filter posts" />
+				</label>
+				<div class="control-post-list" data-admin-post-list></div>
+			</aside>
+
+			<section class="control-panel">
+				<div class="control-panel-head">
+					<h2>Editor</h2>
+					<div class="control-actions">
+						<button class="btn btn-secondary" type="button" data-admin-duplicate>Duplicate</button>
+						<button class="btn btn-secondary" type="button" data-admin-delete>Delete</button>
+						<button class="btn btn-primary" type="button" data-admin-save>Save</button>
+					</div>
+				</div>
+
+				<form class="control-form" data-admin-form>
+					<input type="hidden" name="id" />
+					<div class="control-form-grid">
+						<label class="control-field">
+							<span>Slug</span>
+							<input name="slug" required pattern="[a-z0-9-]+" placeholder="post-slug" />
+						</label>
+						<label class="control-field">
+							<span>Type</span>
+							<select name="type">
+								<option>Thought</option>
+								<option>Deep-Dive</option>
+								<option>Brief Notes</option>
+								<option>Review</option>
+							</select>
+						</label>
+						<label class="control-field control-field-wide">
+							<span>Title</span>
+							<input name="title" required placeholder="Post title" />
+						</label>
+						<label class="control-field control-field-wide">
+							<span>Description</span>
+							<textarea name="description" rows="3" required placeholder="Short summary for cards and SEO"></textarea>
+						</label>
+						<label class="control-field">
+							<span>Published</span>
+							<input name="publishedAt" type="date" required />
+						</label>
+						<label class="control-field">
+							<span>Reading Minutes</span>
+							<input name="readingMinutes" type="number" min="1" step="1" required />
+						</label>
+						<label class="control-field control-field-wide">
+							<span>Categories</span>
+							<input name="categories" placeholder="Technology, Systems" />
+						</label>
+						<label class="control-field control-field-wide">
+							<span>Tags</span>
+							<input name="tags" placeholder="interfaces, cognition, software" />
+						</label>
+						<label class="control-check">
+							<input name="draft" type="checkbox" />
+							<span>Keep as draft</span>
+						</label>
+						<label class="control-field control-field-wide">
+							<span>Body Markdown</span>
+							<textarea name="body" rows="16" required placeholder="## Section heading&#10;&#10;Write the post body here."></textarea>
+						</label>
+					</div>
+				</form>
+			</section>
+
+			<section class="control-panel">
+				<div class="control-panel-head">
+					<h2>Preview</h2>
+					<a class="btn btn-secondary" href="/library/" data-admin-open-post>Open</a>
+				</div>
+				<article class="control-preview" data-admin-preview></article>
+			</section>
+
+			<section class="control-panel">
+				<div class="control-panel-head">
+					<h2>Website Options</h2>
+					<button class="btn btn-primary" type="button" data-admin-save-settings>Apply</button>
+				</div>
+				<div class="control-form-grid">
+					<label class="control-field">
+						<span>Theme</span>
+						<select data-setting-theme>
+							<option value="system">System</option>
+							<option value="light">Light</option>
+							<option value="dark">Dark</option>
+						</select>
+					</label>
+					<label class="control-field">
+						<span>Reader Speed</span>
+						<input data-setting-speed type="number" min="120" max="500" step="10" />
+					</label>
+					<label class="control-field">
+						<span>Font Scale</span>
+						<input data-setting-scale type="number" min="0.9" max="1.25" step="0.05" />
+					</label>
+					<label class="control-field">
+						<span>Line Height</span>
+						<input data-setting-leading type="number" min="1.45" max="2.05" step="0.05" />
+					</label>
+					<label class="control-check">
+						<input data-setting-zen type="checkbox" />
+						<span>Start reader pages in Zen mode</span>
+					</label>
+				</div>
+			</section>
+
+			<section class="control-panel">
+				<div class="control-panel-head">
+					<h2>Import / Export</h2>
+					<div class="control-actions">
+						<button class="btn btn-secondary" type="button" data-admin-export>Export JSON</button>
+						<button class="btn btn-secondary" type="button" data-admin-reset>Reset Local Edits</button>
+					</div>
+				</div>
+				<label class="control-field">
+					<span>Paste exported JSON</span>
+					<textarea rows="7" data-admin-import-box placeholder='{"posts":[...],"settings":{...}}'></textarea>
+				</label>
+				<button class="btn btn-primary" type="button" data-admin-import>Import</button>
+			</section>
+		</div>
+	</section>
+</Layout>

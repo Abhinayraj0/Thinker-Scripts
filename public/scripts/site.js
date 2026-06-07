@@ -2,6 +2,14 @@ const root = document.documentElement;
 
 let pageController;
 
+function trackEvent(name, params = {}) {
+	if (typeof window.gtag !== 'function') return;
+	window.gtag('event', name, {
+		site_area: 'thinker_scripts',
+		...params,
+	});
+}
+
 function setTheme(theme) {
 	root.dataset.theme = theme;
 	root.style.colorScheme = theme;
@@ -23,7 +31,9 @@ function initTheme(signal) {
 	document.querySelector('[data-theme-toggle]')?.addEventListener(
 		'click',
 		() => {
-			setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
+			const nextTheme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+			setTheme(nextTheme);
+			trackEvent('theme_changed', { theme: nextTheme });
 		},
 		{ signal },
 	);
@@ -40,13 +50,21 @@ function initZen(signal) {
 
 	const active = localStorage.getItem('ts-zen') === 'true';
 	setZen(active);
-	toggle.addEventListener('click', () => setZen(!root.classList.contains('zen-active')), { signal });
-	exit?.addEventListener('click', () => setZen(false), { signal });
+	toggle.addEventListener('click', () => {
+		const nextState = !root.classList.contains('zen-active');
+		setZen(nextState);
+		trackEvent('zen_mode_toggled', { active: nextState });
+	}, { signal });
+	exit?.addEventListener('click', () => {
+		setZen(false);
+		trackEvent('zen_mode_toggled', { active: false, source: 'exit_button' });
+	}, { signal });
 	document.addEventListener(
 		'keydown',
 		(event) => {
 			if (event.key === 'Escape' && root.classList.contains('zen-active')) {
 				setZen(false);
+				trackEvent('zen_mode_toggled', { active: false, source: 'escape_key' });
 			}
 		},
 		{ signal },
@@ -150,6 +168,11 @@ function initLibrary(signal) {
 					: [...values, chip.dataset.value];
 				next.forEach((value) => state.append(chip.dataset.filter, value));
 				renderFilters();
+				trackEvent('library_filter_changed', {
+					filter_type: chip.dataset.filter,
+					filter_value: chip.dataset.value,
+					active: next.includes(chip.dataset.value),
+				});
 			},
 			{ signal },
 		);
@@ -160,6 +183,7 @@ function initLibrary(signal) {
 		() => {
 			['type', 'category', 'time'].forEach((key) => state.delete(key));
 			renderFilters();
+			trackEvent('library_filters_cleared');
 		},
 		{ signal },
 	);
@@ -176,6 +200,7 @@ function initReaderControls(signal) {
 		(event) => {
 			root.style.setProperty('--reader-scale', event.target.value);
 			updateReadingProgress();
+			trackEvent('reader_setting_changed', { setting: 'font_scale' });
 		},
 		{ signal },
 	);
@@ -185,6 +210,7 @@ function initReaderControls(signal) {
 		(event) => {
 			root.style.setProperty('--reader-leading', event.target.value);
 			updateReadingProgress();
+			trackEvent('reader_setting_changed', { setting: 'line_height' });
 		},
 		{ signal },
 	);
@@ -194,6 +220,7 @@ function initReaderControls(signal) {
 		(event) => {
 			root.style.setProperty('--reader-tracking', `${event.target.value}em`);
 			updateReadingProgress();
+			trackEvent('reader_setting_changed', { setting: 'letter_spacing' });
 		},
 		{ signal },
 	);
@@ -212,6 +239,7 @@ function initReaderControls(signal) {
 					item.setAttribute('aria-pressed', String(item === button));
 				});
 				updateReadingProgress();
+				trackEvent('reader_setting_changed', { setting: 'font_choice', value: button.dataset.fontChoice });
 			},
 			{ signal },
 		);
@@ -228,6 +256,7 @@ function initReaderControls(signal) {
 					item.setAttribute('aria-pressed', String(item === button));
 				});
 				updateReadingProgress();
+				trackEvent('reader_setting_changed', { setting: 'reader_width', value: button.dataset.readerWidth });
 			},
 			{ signal },
 		);
@@ -237,6 +266,7 @@ function initReaderControls(signal) {
 		'change',
 		(event) => {
 			document.querySelector('[data-reading-widget]')?.classList.toggle('hidden', !event.target.checked);
+			trackEvent('reader_setting_changed', { setting: 'progress_widget', active: event.target.checked });
 		},
 		{ signal },
 	);
@@ -374,6 +404,7 @@ function initReaderDock(signal) {
 		if (searchCount) searchCount.textContent = matches.length === 1 ? '1 match' : `${matches.length} matches`;
 		if (matches.length) jumpToMatch(1);
 		else paintMatches();
+		if (query) trackEvent('reader_search_used', { result_count: matches.length });
 	}
 
 	if (!dock || !trigger || !readerContent) return;
@@ -386,6 +417,7 @@ function initReaderDock(signal) {
 			setMode(button.dataset.readerTab);
 			openDock();
 			if (button.dataset.readerTab === 'search') searchInput?.focus();
+			trackEvent('reader_dock_tab_opened', { tab: button.dataset.readerTab });
 		}, { signal });
 	});
 	toc?.addEventListener('click', (event) => {
@@ -435,6 +467,7 @@ function initBackToTop(signal) {
 		'click',
 		() => {
 			window.scrollTo({ top: 0, behavior: 'smooth' });
+			trackEvent('back_to_top_clicked');
 		},
 		{ signal },
 	);
@@ -443,11 +476,51 @@ function initBackToTop(signal) {
 	update();
 }
 
+function initAnalytics(signal) {
+	document.addEventListener(
+		'click',
+		(event) => {
+			const link = event.target.closest('a[href]');
+			if (!link) return;
+			const href = link.getAttribute('href') || '';
+			if (href.startsWith('mailto:')) {
+				trackEvent('contact_link_clicked', { contact_type: 'email' });
+				return;
+			}
+			try {
+				const url = new URL(href, window.location.href);
+				if (url.origin !== window.location.origin) {
+					trackEvent('outbound_link_clicked', { outbound_host: url.hostname });
+				}
+			} catch {
+				// Ignore malformed author-provided URLs.
+			}
+		},
+		{ signal },
+	);
+
+	window.addEventListener(
+		'load',
+		() => {
+			window.setTimeout(() => {
+				const navigation = performance.getEntriesByType('navigation')[0];
+				if (!navigation) return;
+				trackEvent('site_performance', {
+					load_time_ms: Math.round(navigation.loadEventEnd),
+					dom_ready_ms: Math.round(navigation.domContentLoadedEventEnd),
+				});
+			}, 0);
+		},
+		{ once: true, signal },
+	);
+}
+
 function initPage() {
 	pageController?.abort();
 	pageController = new AbortController();
 	const { signal } = pageController;
 
+	initAnalytics(signal);
 	initTheme(signal);
 	initZen(signal);
 	initReadingProgress(signal);

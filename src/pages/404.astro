@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ErrorPage from '../components/ErrorPage.astro';
+---
+
+<Layout
+	title="404 Page Not Found"
+	description="The requested Thinker Scripts page could not be found. Use the library, topics, or home page to continue reading."
+	keywords={['404 page not found', 'not found page', 'Thinker Scripts error page']}
+	robots="noindex, follow"
+>
+	<ErrorPage
+		code="404"
+		label="PAGE NOT FOUND"
+		title="This page is outside the archive."
+		description="The page may have moved, the URL may be incomplete, or the essay may no longer be published at this address."
+	/>
+</Layout>

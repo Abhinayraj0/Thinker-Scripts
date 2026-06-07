@@ -1,46 +1,38 @@
-# Astro Starter Kit: Basics
+# Thinker Scripts
+
+Astro static MPA for Thinker Scripts.
+
+## Commands
 
 ```sh
-npm create astro@latest -- --template basics
+npm install
+npm run dev
+npm run build
+npm run preview
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Cloudflare Workers
 
-## 🚀 Project Structure
+Use Cloudflare Workers Static Assets for deployment.
 
-Inside of your Astro project, you'll see the following folders and files:
+Worker configuration lives in `wrangler.jsonc`:
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+```txt
+name: thinker-scripts
+assets.directory: ./dist
+compatibility_date: 2026-06-06
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+CLI deploy, after Cloudflare authentication:
 
-## 🧞 Commands
+```sh
+npm run deploy
+```
 
-All commands are run from the root of the project, from a terminal:
+The deploy script builds the Astro site and publishes `dist` as Workers Static Assets.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Cloudflare Pages deployment is still available as a fallback:
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```sh
+npm run deploy:pages
+```

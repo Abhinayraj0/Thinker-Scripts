@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ErrorPage from '../components/ErrorPage.astro';
+---
+
+<Layout
+	title="403 Forbidden"
+	description="The requested Thinker Scripts page cannot be accessed with the current permissions."
+	keywords={['403 forbidden', 'forbidden page', 'Thinker Scripts error page']}
+	robots="noindex, follow"
+>
+	<ErrorPage
+		code="403"
+		label="FORBIDDEN"
+		title="This page is not available to your request."
+		description="The server understood the request, but this page is not available with the current permissions."
+		primaryLabel="Return Home"
+		secondaryHref="/contact-us/"
+		secondaryLabel="Contact Us"
+	/>
+</Layout>

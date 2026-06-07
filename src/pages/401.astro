@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ErrorPage from '../components/ErrorPage.astro';
+---
+
+<Layout
+	title="401 Unauthorized"
+	description="The requested Thinker Scripts page requires authorization before it can be viewed."
+	keywords={['401 unauthorized', 'unauthorized page', 'Thinker Scripts error page']}
+	robots="noindex, follow"
+>
+	<ErrorPage
+		code="401"
+		label="UNAUTHORIZED"
+		title="This page needs authorization."
+		description="The page exists, but the current request does not include the authorization needed to view it."
+		primaryLabel="Return Home"
+		secondaryHref="/contact-us/"
+		secondaryLabel="Contact Us"
+	/>
+</Layout>

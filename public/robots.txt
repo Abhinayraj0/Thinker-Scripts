@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://thinkerscripts.com/sitemap.xml
+Sitemap: https://thinker-scripts.araj20164.workers.dev/sitemap.xml

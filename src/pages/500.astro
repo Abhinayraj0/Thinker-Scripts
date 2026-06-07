@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ErrorPage from '../components/ErrorPage.astro';
+---
+
+<Layout
+	title="500 Server Error"
+	description="Thinker Scripts encountered a server error while handling the request."
+	keywords={['500 server error', 'server error page', 'Thinker Scripts error page']}
+	robots="noindex, follow"
+>
+	<ErrorPage
+		code="500"
+		label="SERVER ERROR"
+		title="Something failed while loading this page."
+		description="The request reached Thinker Scripts, but the server could not complete it. Try again later or use another route to keep reading."
+		secondaryHref="/contact-us/"
+		secondaryLabel="Contact Us"
+	/>
+</Layout>

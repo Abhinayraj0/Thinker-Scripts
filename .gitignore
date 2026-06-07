@@ -7,6 +7,11 @@ dist/
 .vite-cache/
 .vite-build-cache/
 .vite-build-check/
+.vite-*/
+.vite-*-verify/
+.vite-build-pages*/
+vite-*-cache/
+.wrangler/
 
 # dependencies
 node_modules/

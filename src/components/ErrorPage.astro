@@ -1,0 +1,61 @@
+---
+interface Props {
+	code: string;
+	label: string;
+	title: string;
+	description: string;
+	primaryHref?: string;
+	primaryLabel?: string;
+	secondaryHref?: string;
+	secondaryLabel?: string;
+}
+
+const {
+	code,
+	label,
+	title,
+	description,
+	primaryHref = '/',
+	primaryLabel = 'Return Home',
+	secondaryHref = '/library/',
+	secondaryLabel = 'Browse Library',
+} = Astro.props;
+---
+
+<section class="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:px-8 lg:py-24">
+	<div class="grid gap-10 lg:grid-cols-[0.56fr_1fr] lg:items-end">
+		<div>
+			<p class="font-mono text-xs text-neutral-500 dark:text-neutral-400">{label}</p>
+			<p class="mt-5 font-mono text-8xl font-semibold leading-none text-neutral-950 sm:text-9xl dark:text-white">{code}</p>
+		</div>
+		<div>
+			<h1 class="max-w-4xl text-5xl font-semibold leading-none text-pretty text-neutral-950 sm:text-7xl dark:text-white">
+				{title}
+			</h1>
+			<p class="mt-6 max-w-3xl text-lg leading-8 text-neutral-600 dark:text-neutral-300">
+				{description}
+			</p>
+			<div class="mt-9 flex flex-wrap gap-3">
+				<a class="btn btn-primary" href={primaryHref}>{primaryLabel}</a>
+				<a class="btn btn-secondary" href={secondaryHref}>{secondaryLabel}</a>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="border-y border-neutral-200 bg-neutral-50 py-14 dark:border-neutral-800 dark:bg-neutral-950">
+	<div class="mx-auto grid max-w-7xl gap-4 px-5 sm:px-6 lg:grid-cols-3 lg:px-8">
+		<a class="topic-row" href="/">
+			<span>Home</span>
+			<strong>Start</strong>
+		</a>
+		<a class="topic-row" href="/topics/">
+			<span>Topics</span>
+			<strong>Explore</strong>
+		</a>
+		<a class="topic-row" href="/contact-us/">
+			<span>Contact Us</span>
+			<strong>Help</strong>
+		</a>
+	</div>
+</section>
