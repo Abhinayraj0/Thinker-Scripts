@@ -237,7 +237,7 @@ import Layout from '../layouts/Layout.astro';
 						</label>
 					</div>
 					<p class="cc-note">
-						Live publish commits Markdown to GitHub. Use a fine-grained token limited to <strong>Abhinayraj0/Thinker-Scripts</strong> with repository Contents read/write. If your live host deploys from GitHub, the website updates after deployment completes.
+						Live publish commits only the current Markdown post to GitHub. It does not upload homepage, layout, CSS, or script changes from this computer. Push or deploy local code separately before using a deploy hook, otherwise the live host may rebuild from an older UI.
 					</p>
 					<p class="cc-live-status" id="publishStatus" aria-live="polite">Publish config not saved.</p>
 				</section>
@@ -1292,7 +1292,7 @@ import Layout from '../layouts/Layout.astro';
 					setPublishStatus('Triggering deploy hook...');
 					await fetch(config.hook, { method: 'POST', mode: 'no-cors' });
 				}
-				setPublishStatus(config.hook ? 'Published and deploy hook called.' : 'Published to GitHub. Wait for deployment.');
+				setPublishStatus(config.hook ? 'Published post and called deploy hook. Confirm local UI code is already pushed.' : 'Published post to GitHub. Site UI changes require a separate code deploy.');
 			}
 
 			function loadSettings() {
