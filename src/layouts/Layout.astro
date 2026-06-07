@@ -161,22 +161,6 @@ const pageSchema = {
 					))}
 				</div>
 				<div class="flex items-center gap-2">
-					{zenCapable && (
-						<button class="zen-switch" type="button" data-zen-toggle aria-label="Toggle Zen Mode" aria-pressed="false" title="Zen Mode">
-							<span class="zen-switch__track" aria-hidden="true">
-								<span class="zen-switch__label zen-switch__label--off">Off</span>
-								<span class="zen-switch__label zen-switch__label--on">On</span>
-								<span class="zen-switch__thumb">
-									<svg class="zen-switch__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-										<path d="M4 12h4"></path>
-										<path d="M16 12h4"></path>
-										<path d="M8 12a4 4 0 0 1 8 0"></path>
-										<path d="M8 12a4 4 0 0 0 8 0"></path>
-									</svg>
-								</span>
-							</span>
-						</button>
-					)}
 					<button class="theme-switch" type="button" data-theme-toggle aria-label="Toggle Dark Mode" aria-pressed="false" title="Theme">
 						<span class="theme-switch__track" aria-hidden="true">
 							<span class="theme-switch__thumb">
@@ -204,12 +188,11 @@ const pageSchema = {
 			<slot />
 		</main>
 		{zenCapable && (
-			<button class="zen-exit-btn" type="button" data-zen-exit aria-label="Exit Zen Mode">
-				<span aria-hidden="true">x</span>
-				<span>Exit Zen</span>
+			<button class="zen-exit-btn fixed top-6 right-6 opacity-20 backdrop-blur-md transition-opacity duration-300 hover:opacity-100" type="button" data-zen-exit aria-label="Exit Zen Mode">
+				<span aria-hidden="true">&times;</span>
 			</button>
 		)}
-		<button class="back-to-top fixed bottom-6 right-6 z-50 opacity-0 pointer-events-none scale-95 transition-all duration-300" type="button" data-back-to-top aria-label="Back to Top">
+		<button class="back-to-top fixed bottom-6 right-6 z-40 h-12 w-12 opacity-0 pointer-events-none scale-95 backdrop-blur-md transition-all duration-300" type="button" data-back-to-top aria-label="Back to Top">
 			<svg class="back-to-top__ring" viewBox="0 0 48 48" aria-hidden="true">
 				<circle class="back-to-top__track" cx="24" cy="24" r="21"></circle>
 				<circle class="back-to-top__progress" cx="24" cy="24" r="21" pathLength="100" data-back-to-top-progress></circle>

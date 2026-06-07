@@ -261,9 +261,9 @@ function initTheme(signal) {
 }
 
 function initZen(signal) {
-	const toggle = document.querySelector('[data-zen-toggle]');
+	const toggles = [...document.querySelectorAll('[data-zen-toggle]')];
 	const exit = document.querySelector('[data-zen-exit]');
-	if (!toggle) {
+	if (!toggles.length && !exit) {
 		root.classList.remove('zen-active');
 		document.body.classList.remove('zen-active');
 		return;
@@ -271,11 +271,13 @@ function initZen(signal) {
 
 	const active = localStorage.getItem('ts-zen') === 'true';
 	setZen(active);
-	toggle.addEventListener('click', () => {
-		const nextState = !root.classList.contains('zen-active');
-		setZen(nextState);
-		trackEvent('zen_mode_toggled', { active: nextState });
-	}, { signal });
+	toggles.forEach((toggle) => {
+		toggle.addEventListener('click', () => {
+			const nextState = !root.classList.contains('zen-active');
+			setZen(nextState);
+			trackEvent('zen_mode_toggled', { active: nextState });
+		}, { signal });
+	});
 	exit?.addEventListener('click', () => {
 		setZen(false);
 		trackEvent('zen_mode_toggled', { active: false, source: 'exit_button' });
@@ -703,7 +705,7 @@ function initLocalSettings() {
 	root.dataset.accent = settings.accent || 'forest';
 	if (settings.readerScale) root.style.setProperty('--reader-scale', settings.readerScale);
 	if (settings.readerLeading) root.style.setProperty('--reader-leading', settings.readerLeading);
-	if (settings.zenDefault && document.querySelector('[data-zen-toggle]')) setZen(true);
+	if (settings.zenDefault && (document.querySelector('[data-zen-toggle]') || document.querySelector('[data-zen-exit]'))) setZen(true);
 	const speedPreset = document.querySelector('[data-speed-preset]');
 	if (speedPreset && settings.readerSpeed) speedPreset.value = String(settings.readerSpeed);
 	if (settings.progressDefault === false) {

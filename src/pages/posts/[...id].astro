@@ -76,7 +76,7 @@ const articleKeywords = [
 	</div>
 
 	<div class="reader-dock" data-reader-dock data-open="false">
-		<button class="reader-dock-trigger" type="button" data-reader-dock-trigger aria-label="Open reader tools" aria-expanded="false">
+		<button class="reader-dock-trigger fixed bottom-6 left-1/2 z-40 -translate-x-1/2 backdrop-blur-md" type="button" data-reader-dock-trigger aria-label="Open reader tools" aria-expanded="false">
 			<span aria-hidden="true">^</span>
 		</button>
 		<div class="reader-dock-panel" role="dialog" aria-label="Reader tools">
@@ -145,6 +145,13 @@ const articleKeywords = [
 							<button type="button" data-font-choice="charter" aria-pressed="false">Charter</button>
 							<button type="button" data-font-choice="mono" aria-pressed="false">Mono</button>
 						</div>
+					</div>
+					<div class="reader-setting reader-setting--wide">
+						<span>Focus</span>
+						<button class="zen-entry" type="button" data-zen-toggle aria-label="Enter Zen Mode" aria-pressed="false">
+							<span>Zen Mode</span>
+							<span aria-hidden="true">-&gt;</span>
+						</button>
 					</div>
 				</div>
 			</section>
