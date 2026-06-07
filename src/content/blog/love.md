@@ -1,5 +1,5 @@
 ---
-title: "New Post"
+title: "love"
 description: "A short description for the new post."
 publishedAt: 2026-06-07
 type: "Deep-Dive"
