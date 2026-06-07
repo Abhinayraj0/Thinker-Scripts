@@ -231,13 +231,9 @@ import Layout from '../layouts/Layout.astro';
 							<span>GitHub token</span>
 							<input id="publishToken" type="password" placeholder="Fine-grained token with Contents read/write" autocomplete="off" />
 						</label>
-						<label class="cc-field cc-span-2">
-							<span>Deploy hook optional</span>
-							<input id="publishHook" placeholder="https://..." autocomplete="off" />
-						</label>
 					</div>
 					<p class="cc-note">
-						Live publish commits only the current Markdown post to GitHub. It does not upload homepage, layout, CSS, or script changes from this computer. Push or deploy local code separately before using a deploy hook, otherwise the live host may rebuild from an older UI.
+						Live publish commits only the current Markdown post to GitHub. It does not trigger a site deploy, upload homepage UI, or touch layout, CSS, and script files.
 					</p>
 					<p class="cc-live-status" id="publishStatus" aria-live="polite">Publish config not saved.</p>
 				</section>
@@ -1223,7 +1219,6 @@ import Layout from '../layouts/Layout.astro';
 					branch: $('publishBranch').value.trim() || 'main',
 					path: $('publishPath').value.trim().replace(/^\/+|\/+$/g, '') || 'src/content/blog',
 					token: $('publishToken').value.trim(),
-					hook: $('publishHook').value.trim(),
 				};
 			}
 
@@ -1288,11 +1283,7 @@ import Layout from '../layouts/Layout.astro';
 					const payload = await response.json().catch(() => ({}));
 					throw new Error(payload.message || `GitHub publish failed (${response.status}).`);
 				}
-				if (config.hook) {
-					setPublishStatus('Triggering deploy hook...');
-					await fetch(config.hook, { method: 'POST', mode: 'no-cors' });
-				}
-				setPublishStatus(config.hook ? 'Published post and called deploy hook. Confirm local UI code is already pushed.' : 'Published post to GitHub. Site UI changes require a separate code deploy.');
+				setPublishStatus('Published post to GitHub. No site deploy was triggered.');
 			}
 
 			function loadSettings() {
@@ -1310,7 +1301,6 @@ import Layout from '../layouts/Layout.astro';
 				$('publishBranch').value = publish.branch || 'main';
 				$('publishPath').value = publish.path || 'src/content/blog';
 				$('publishToken').value = publish.token || '';
-				$('publishHook').value = publish.hook || '';
 			}
 
 			function bind() {
