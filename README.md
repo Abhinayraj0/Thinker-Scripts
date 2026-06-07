@@ -30,6 +30,7 @@ npm run deploy
 ```
 
 The deploy script builds the Astro site and publishes `dist` as Workers Static Assets.
+It runs `npm run build:public`, which removes private local-only routes such as `/control-center/` from `dist` before publishing.
 
 Cloudflare Pages deployment is still available as a fallback:
 

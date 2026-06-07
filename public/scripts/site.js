@@ -700,11 +700,17 @@ function initBackToTop(signal) {
 function initLocalSettings() {
 	const { settings } = readControlState();
 	if (settings.theme && settings.theme !== 'system') setTheme(settings.theme);
+	root.dataset.accent = settings.accent || 'forest';
 	if (settings.readerScale) root.style.setProperty('--reader-scale', settings.readerScale);
 	if (settings.readerLeading) root.style.setProperty('--reader-leading', settings.readerLeading);
 	if (settings.zenDefault && document.querySelector('[data-zen-toggle]')) setZen(true);
 	const speedPreset = document.querySelector('[data-speed-preset]');
 	if (speedPreset && settings.readerSpeed) speedPreset.value = String(settings.readerSpeed);
+	if (settings.progressDefault === false) {
+		document.querySelector('[data-reading-widget]')?.classList.add('hidden');
+		const progressToggle = document.querySelector('[data-progress-toggle]');
+		if (progressToggle) progressToggle.checked = false;
+	}
 }
 
 function initLocalContent(signal) {
