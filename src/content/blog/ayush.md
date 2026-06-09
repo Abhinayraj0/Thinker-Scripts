@@ -6,7 +6,6 @@ type: "Thought"
 categories: ["Thought"]
 tags: []
 readingMinutes: 1
-draft: true
 ---
 
 >ayush is a good boi
